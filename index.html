@@ -1,45 +1,29 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SentenceFlow - 외웠는데 입에서 안 나오는 영어, 이제 끝내세요</title>
   <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' },
-            safe: '#22c55e', warn: '#f59e0b', danger: '#ef4444',
-          },
-          fontFamily: { sans: ['"Noto Sans KR"','system-ui','sans-serif'] }
-        }
-      }
-    }
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{brand:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'},safe:'#22c55e',warn:'#f59e0b',danger:'#ef4444'},fontFamily:{sans:['"Noto Sans KR"','system-ui','sans-serif']}}}}
   </script>
   <style>
     body{font-family:'Noto Sans KR',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
     *{box-sizing:border-box}
-    .fade-in{animation:fadeIn .3s ease}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-    .pop{animation:pop .3s cubic-bezier(.175,.885,.32,1.275)}
-    @keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
-    .shake{animation:shake .4s ease}
-    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
-    .slide-up{animation:slideUp .25s ease-out}
-    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-    .glow{box-shadow:0 0 20px rgba(99,102,241,.3)}
-    .dark .glow{box-shadow:0 0 20px rgba(129,140,248,.2)}
+    .fade-in{animation:fadeIn .3s ease}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .pop{animation:pop .3s cubic-bezier(.175,.885,.32,1.275)}@keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+    .shake{animation:shake .4s ease}@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+    .slide-up{animation:slideUp .25s ease-out}@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .glow{box-shadow:0 0 20px rgba(99,102,241,.3)}.dark .glow{box-shadow:0 0 20px rgba(129,140,248,.2)}
     input:focus,textarea:focus,button:focus{outline:none}
-    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#c7d2fe;border-radius:2px}
-    .dark ::-webkit-scrollbar-thumb{background:#4338ca}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#c7d2fe;border-radius:2px}.dark ::-webkit-scrollbar-thumb{background:#4338ca}
+    .new-badge{animation:pulse 2s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
   </style>
 </head>
 <body>
@@ -48,48 +32,215 @@
 const {useState,useEffect,useRef,useCallback,useMemo}=React;
 
 // ============================================================
-// DATA: 30 sentences (10 per category) with chunks & teaching
+// LEVELS (5)
 // ============================================================
-const SENTENCES=[
-  // === Daily ===
-  {id:1,cat:'daily',en:"I've been looking forward to meeting you.",ko:"만나 뵙기를 기대하고 있었습니다.",chunks:[["I've been","나는 ~해왔다"],["looking forward to","기대하다"],["meeting you","만나는 것을"]],tip:"비즈니스 첫인사. 'look forward to' 뒤에는 항상 -ing(동명사)가 옵니다.",difficulty:2},
-  {id:2,cat:'daily',en:"Could you do me a favor?",ko:"부탁 하나 해도 될까요?",chunks:[["Could you","~해주실 수 있나요"],["do me","나에게 해주다"],["a favor","부탁 하나"]],tip:"정중한 부탁 표현. 'Can you' 보다 격식 있습니다.",difficulty:1},
-  {id:3,cat:'daily',en:"I'm sorry, but something came up.",ko:"죄송한데, 갑자기 일이 생겼어요.",chunks:[["I'm sorry, but","죄송하지만"],["something","무언가가"],["came up","생겼다/발생했다"]],tip:"약속 취소 시 자연스러운 표현. 'come up'은 예상치 못한 일이 생길 때 씁니다.",difficulty:1},
-  {id:4,cat:'daily',en:"It totally slipped my mind.",ko:"완전히 깜빡했어요.",chunks:[["It","그것이"],["totally slipped","완전히 빠져나갔다"],["my mind","내 마음에서"]],tip:"까먹었을 때 자연스러운 표현. 'I forgot' 보다 원어민스럽습니다.",difficulty:2},
-  {id:5,cat:'daily',en:"I'll keep that in mind.",ko:"그거 기억해 둘게요.",chunks:[["I'll keep","나는 유지할게"],["that","그것을"],["in mind","마음속에"]],tip:"조언을 받았을 때 감사하며 쓰는 표현.",difficulty:1},
-  {id:6,cat:'daily',en:"Let me get back to you on that.",ko:"그건 확인하고 다시 알려드릴게요.",chunks:[["Let me","제가 ~할게요"],["get back to you","다시 연락하다"],["on that","그것에 대해"]],tip:"즉답이 어려울 때 시간을 버는 핵심 표현.",difficulty:2},
-  {id:7,cat:'daily',en:"That's not what I meant.",ko:"제가 말하려던 건 그게 아니에요.",chunks:[["That's not","그건 ~이 아니다"],["what I meant","내가 의미했던 것"]],tip:"오해가 생겼을 때 바로잡는 표현.",difficulty:2},
-  {id:8,cat:'daily',en:"I'm not really in the mood for that.",ko:"지금 그럴 기분이 아니에요.",chunks:[["I'm not really","사실 ~이 아니에요"],["in the mood","기분이 나는"],["for that","그것에 대해"]],tip:"부드럽게 거절할 때. 직접적인 'No' 보다 자연스럽습니다.",difficulty:2},
-  {id:9,cat:'daily',en:"It's on the tip of my tongue.",ko:"입 끝에서 맴도는데 생각이 안 나요.",chunks:[["It's on","~에 있다"],["the tip of","끝에"],["my tongue","내 혀의"]],tip:"뭔가 떠오를 듯 안 떠오를 때. 영어 학습자가 자주 겪는 바로 그 순간!",difficulty:2},
-  {id:10,cat:'daily',en:"I couldn't agree with you more.",ko:"완전히 동의합니다.",chunks:[["I couldn't","나는 ~할 수 없다"],["agree with you","당신에게 동의하다"],["more","더 이상"]],tip:"이중부정 강조 표현. '더 이상 동의할 수 없을 정도로 동의한다' = 완전 동의.",difficulty:3},
-  // === Business ===
-  {id:11,cat:'business',en:"Let's circle back to this later.",ko:"이건 나중에 다시 논의합시다.",chunks:[["Let's","~합시다"],["circle back","다시 돌아오다"],["to this later","이것에 나중에"]],tip:"회의 중 주제를 미룰 때. 미국 기업문화 필수 표현.",difficulty:2},
-  {id:12,cat:'business',en:"I'd like to touch base with you.",ko:"간단히 상황 공유하고 싶습니다.",chunks:[["I'd like to","~하고 싶습니다"],["touch base","연락하다/상황 공유하다"],["with you","당신과"]],tip:"야구에서 유래. 짧은 미팅/체크인을 요청할 때.",difficulty:2},
-  {id:13,cat:'business',en:"We need to get everyone on the same page.",ko:"모두가 같은 이해를 하고 있어야 합니다.",chunks:[["We need to","우리는 ~해야 한다"],["get everyone","모두를 ~하게 하다"],["on the same page","같은 페이지에"]],tip:"팀 정렬이 필요할 때. 프로젝트 킥오프에서 자주 사용.",difficulty:3},
-  {id:14,cat:'business',en:"Could you walk me through the process?",ko:"그 프로세스를 설명해 주시겠어요?",chunks:[["Could you","~해주시겠어요"],["walk me through","단계별로 설명하다"],["the process","그 과정을"]],tip:"'explain'보다 자연스러운 비즈니스 표현. 단계별 설명을 요청할 때.",difficulty:2},
-  {id:15,cat:'business',en:"I'll keep you posted on any updates.",ko:"업데이트가 있으면 계속 알려드리겠습니다.",chunks:[["I'll keep","~를 유지하겠다"],["you posted","당신에게 알림을"],["on any updates","어떤 업데이트든"]],tip:"진행 상황을 공유하겠다는 약속. 이메일 마무리에 자주 사용.",difficulty:2},
-  {id:16,cat:'business',en:"Let me play devil's advocate for a moment.",ko:"잠시 반대 입장에서 말해볼게요.",chunks:[["Let me play","제가 ~역할을 할게요"],["devil's advocate","악마의 옹호자"],["for a moment","잠시"]],tip:"회의에서 의도적으로 반론을 제기할 때. 비판이 아닌 건설적 토론 도구.",difficulty:3},
-  {id:17,cat:'business',en:"We're running behind schedule.",ko:"일정보다 뒤처지고 있습니다.",chunks:[["We're running","우리는 ~하고 있다"],["behind","뒤에"],["schedule","일정"]],tip:"프로젝트 지연을 알릴 때. 'late'보다 전문적인 표현.",difficulty:2},
-  {id:18,cat:'business',en:"That's a bit outside the scope of this meeting.",ko:"그건 이 회의의 범위를 벗어납니다.",chunks:[["That's a bit","그건 약간"],["outside the scope","범위 밖의"],["of this meeting","이 회의의"]],tip:"회의가 산으로 갈 때 주제를 되돌리는 표현.",difficulty:3},
-  {id:19,cat:'business',en:"I think we should take a step back and look at the bigger picture.",ko:"한 발 물러서서 큰 그림을 봐야 할 것 같습니다.",chunks:[["I think we should","~해야 할 것 같습니다"],["take a step back","한 발 물러서다"],["and look at the bigger picture","그리고 큰 그림을 보다"]],tip:"세부사항에 매몰됐을 때. 전략적 시각을 환기시키는 표현.",difficulty:3},
-  {id:20,cat:'business',en:"Let's table this discussion for now.",ko:"이 논의는 일단 보류합시다.",chunks:[["Let's table","~를 보류합시다"],["this discussion","이 논의를"],["for now","지금은"]],tip:"미국식 영어에서 'table'은 '보류하다'. 영국식에서는 반대로 '제안하다'!",difficulty:2},
-  // === Travel ===
-  {id:21,cat:'travel',en:"Is there anywhere you'd recommend around here?",ko:"이 근처에 추천해주실 곳 있나요?",chunks:[["Is there anywhere","어딘가 있나요"],["you'd recommend","당신이 추천할"],["around here","이 근처에"]],tip:"현지인에게 맛집/명소를 물을 때 자연스러운 표현.",difficulty:2},
-  {id:22,cat:'travel',en:"I'd like to check in, please.",ko:"체크인하고 싶습니다.",chunks:[["I'd like to","~하고 싶습니다"],["check in","체크인하다"],["please","부탁드립니다"]],tip:"호텔/공항에서 필수. 'I want to' 보다 정중합니다.",difficulty:1},
-  {id:23,cat:'travel',en:"Could you take a picture of us?",ko:"저희 사진 좀 찍어주시겠어요?",chunks:[["Could you","~해주시겠어요"],["take a picture","사진을 찍다"],["of us","저희의"]],tip:"관광지에서 자주 쓰는 표현. 'photo'로 바꿔써도 됩니다.",difficulty:1},
-  {id:24,cat:'travel',en:"How long does it take to get there?",ko:"거기까지 얼마나 걸리나요?",chunks:[["How long","얼마나 오래"],["does it take","걸리나요"],["to get there","거기에 도착하는 데"]],tip:"교통수단/이동시간을 물을 때 필수 표현.",difficulty:1},
-  {id:25,cat:'travel',en:"I'm allergic to peanuts. Does this contain any?",ko:"저는 땅콩 알레르기가 있어요. 이거 들어있나요?",chunks:[["I'm allergic to","~에 알레르기가 있다"],["peanuts","땅콩"],["Does this contain any","이것에 들어있나요"]],tip:"식당에서 안전을 위한 필수 표현. 'peanuts'를 다른 알레르기 원인으로 교체 가능.",difficulty:2},
-  {id:26,cat:'travel',en:"We're a party of four. Do you have a table available?",ko:"4명인데요, 자리 있나요?",chunks:[["We're a party of four","우리는 4인 일행입니다"],["Do you have","~가 있나요"],["a table available","이용 가능한 테이블"]],tip:"레스토랑 예약 없이 갈 때. 'party'는 여기서 '일행'이라는 뜻.",difficulty:2},
-  {id:27,cat:'travel',en:"Excuse me, I think you gave me the wrong change.",ko:"실례합니다, 거스름돈이 잘못된 것 같아요.",chunks:[["Excuse me","실례합니다"],["I think you gave me","~를 주신 것 같아요"],["the wrong change","잘못된 거스름돈"]],tip:"공손하게 실수를 지적할 때. 'I think'을 넣으면 부드러워집니다.",difficulty:2},
-  {id:28,cat:'travel',en:"Is this seat taken?",ko:"이 자리 비어있나요?",chunks:[["Is this seat","이 좌석이"],["taken","차지된/사용 중인"]],tip:"카페, 기차, 공항 등 어디서나 쓸 수 있는 짧고 강력한 표현.",difficulty:1},
-  {id:29,cat:'travel',en:"I got lost. Could you point me in the right direction?",ko:"길을 잃었어요. 방향을 알려주시겠어요?",chunks:[["I got lost","길을 잃었다"],["Could you point me","저를 가리켜 주시겠어요"],["in the right direction","올바른 방향으로"]],tip:"GPS가 안 될 때 현지인에게 도움 요청. 'point'는 방향을 가리키다.",difficulty:2},
-  {id:30,cat:'travel',en:"What time is the last train back?",ko:"돌아가는 마지막 기차가 몇 시인가요?",chunks:[["What time is","몇 시인가요"],["the last train","마지막 기차가"],["back","돌아가는"]],tip:"여행지에서 교통편 확인 필수. 'train'을 'bus/ferry'로 교체 가능.",difficulty:1},
+const LEVELS=[
+  {id:1,name:'Foundation',label:'기초',desc:'A1-A2',emoji:'🌱',color:'emerald'},
+  {id:2,name:'Building',label:'성장',desc:'A2-B1',emoji:'🧱',color:'blue'},
+  {id:3,name:'Expanding',label:'확장',desc:'B1-B2',emoji:'🚀',color:'purple'},
+  {id:4,name:'Refining',label:'세련',desc:'B2-C1',emoji:'💎',color:'amber'},
+  {id:5,name:'Mastering',label:'완성',desc:'C1-C2',emoji:'👑',color:'rose'},
 ];
 
-const CATS={daily:{label:'일상',emoji:'💬',color:'indigo'},business:{label:'비즈니스',emoji:'💼',color:'emerald'},travel:{label:'여행',emoji:'✈️',color:'amber'}};
+// ============================================================
+// CATEGORIES (8)
+// ============================================================
+const CATS={
+  office:{label:'회사에서 살아남기',emoji:'💼',color:'blue'},
+  travel:{label:'여행 영어',emoji:'✈️',color:'amber'},
+  daily:{label:'오늘 하루를 영어로',emoji:'💬',color:'indigo'},
+  emotions:{label:'내 마음을 영어로',emoji:'💗',color:'pink'},
+  interview:{label:'면접 합격까지',emoji:'🎯',color:'red'},
+  parenting:{label:'아이와 함께 영어',emoji:'👶',color:'green'},
+  sns:{label:'SNS & 트렌드',emoji:'📱',color:'violet'},
+  nuance:{label:'한 끗 차이 영어',emoji:'🔍',color:'teal'},
+};
 
 // ============================================================
-// SM-2 Spaced Repetition helpers
+// SENTENCES (135 total: 30 starter + 105 daily unlock)
+// lv=level(1-5), cat=category, day=unlock day (0=immediate)
+// 7 new sentences unlock each day at 7:00 AM KST
+// ============================================================
+const ALL_SENTENCES=[
+// === Day 0: Starter Pack (30 sentences) ===
+{id:1,lv:2,cat:'daily',day:0,en:"I've been looking forward to meeting you.",ko:"만나 뵙기를 기대하고 있었습니다.",chunks:[["I've been","나는 ~해왔다"],["looking forward to","기대하다"],["meeting you","만나는 것을"]],tip:"'look forward to' 뒤에는 항상 -ing(동명사)가 옵니다.",diff:2},
+{id:2,lv:1,cat:'daily',day:0,en:"Could you do me a favor?",ko:"부탁 하나 해도 될까요?",chunks:[["Could you","~해주실 수 있나요"],["do me","나에게 해주다"],["a favor","부탁 하나"]],tip:"정중한 부탁 표현. 'Can you' 보다 격식 있습니다.",diff:1},
+{id:3,lv:2,cat:'daily',day:0,en:"I'm sorry, but something came up.",ko:"죄송한데, 갑자기 일이 생겼어요.",chunks:[["I'm sorry, but","죄송하지만"],["something","무언가가"],["came up","생겼다"]],tip:"'come up'은 예상치 못한 일이 생길 때 씁니다.",diff:1},
+{id:4,lv:2,cat:'daily',day:0,en:"It totally slipped my mind.",ko:"완전히 깜빡했어요.",chunks:[["It","그것이"],["totally slipped","완전히 빠져나갔다"],["my mind","내 마음에서"]],tip:"'I forgot' 보다 원어민스러운 표현.",diff:2},
+{id:5,lv:1,cat:'daily',day:0,en:"I'll keep that in mind.",ko:"그거 기억해 둘게요.",chunks:[["I'll keep","나는 유지할게"],["that","그것을"],["in mind","마음속에"]],tip:"조언을 받았을 때 감사하며 쓰는 표현.",diff:1},
+{id:6,lv:2,cat:'daily',day:0,en:"Let me get back to you on that.",ko:"그건 확인하고 다시 알려드릴게요.",chunks:[["Let me","제가 ~할게요"],["get back to you","다시 연락하다"],["on that","그것에 대해"]],tip:"즉답이 어려울 때 시간을 버는 핵심 표현.",diff:2},
+{id:7,lv:2,cat:'daily',day:0,en:"That's not what I meant.",ko:"제가 말하려던 건 그게 아니에요.",chunks:[["That's not","그건 ~이 아니다"],["what I meant","내가 의미했던 것"]],tip:"오해가 생겼을 때 바로잡는 표현.",diff:2},
+{id:8,lv:2,cat:'daily',day:0,en:"I'm not really in the mood for that.",ko:"지금 그럴 기분이 아니에요.",chunks:[["I'm not really","사실 ~이 아니에요"],["in the mood","기분이 나는"],["for that","그것에 대해"]],tip:"부드럽게 거절할 때. 'No' 보다 자연스럽습니다.",diff:2},
+{id:9,lv:3,cat:'daily',day:0,en:"It's on the tip of my tongue.",ko:"입 끝에서 맴도는데 생각이 안 나요.",chunks:[["It's on","~에 있다"],["the tip of","끝에"],["my tongue","내 혀의"]],tip:"뭔가 떠오를 듯 안 떠오를 때 쓰는 표현!",diff:2},
+{id:10,lv:3,cat:'daily',day:0,en:"I couldn't agree with you more.",ko:"완전히 동의합니다.",chunks:[["I couldn't","나는 ~할 수 없다"],["agree with you","당신에게 동의하다"],["more","더 이상"]],tip:"이중부정 강조. '더 이상 동의할 수 없을 정도로 동의' = 완전 동의.",diff:3},
+{id:11,lv:2,cat:'office',day:0,en:"Let's circle back to this later.",ko:"이건 나중에 다시 논의합시다.",chunks:[["Let's","~합시다"],["circle back","다시 돌아오다"],["to this later","이것에 나중에"]],tip:"회의 중 주제를 미룰 때. 미국 기업문화 필수 표현.",diff:2},
+{id:12,lv:2,cat:'office',day:0,en:"I'd like to touch base with you.",ko:"간단히 상황 공유하고 싶습니다.",chunks:[["I'd like to","~하고 싶습니다"],["touch base","연락하다/상황 공유하다"],["with you","당신과"]],tip:"야구에서 유래. 짧은 미팅/체크인을 요청할 때.",diff:2},
+{id:13,lv:3,cat:'office',day:0,en:"We need to get everyone on the same page.",ko:"모두가 같은 이해를 하고 있어야 합니다.",chunks:[["We need to","우리는 ~해야 한다"],["get everyone","모두를 ~하게 하다"],["on the same page","같은 페이지에"]],tip:"팀 정렬이 필요할 때. 프로젝트 킥오프에서 자주 사용.",diff:3},
+{id:14,lv:2,cat:'office',day:0,en:"Could you walk me through the process?",ko:"그 프로세스를 설명해 주시겠어요?",chunks:[["Could you","~해주시겠어요"],["walk me through","단계별로 설명하다"],["the process","그 과정을"]],tip:"'explain'보다 자연스러운 비즈니스 표현.",diff:2},
+{id:15,lv:2,cat:'office',day:0,en:"I'll keep you posted on any updates.",ko:"업데이트가 있으면 계속 알려드리겠습니다.",chunks:[["I'll keep","~를 유지하겠다"],["you posted","당신에게 알림을"],["on any updates","어떤 업데이트든"]],tip:"이메일 마무리에 자주 사용.",diff:2},
+{id:16,lv:3,cat:'office',day:0,en:"Let me play devil's advocate for a moment.",ko:"잠시 반대 입장에서 말해볼게요.",chunks:[["Let me play","제가 ~역할을 할게요"],["devil's advocate","악마의 옹호자"],["for a moment","잠시"]],tip:"의도적으로 반론을 제기할 때. 건설적 토론 도구.",diff:3},
+{id:17,lv:2,cat:'office',day:0,en:"We're running behind schedule.",ko:"일정보다 뒤처지고 있습니다.",chunks:[["We're running","우리는 ~하고 있다"],["behind","뒤에"],["schedule","일정"]],tip:"'late'보다 전문적인 표현.",diff:2},
+{id:18,lv:3,cat:'office',day:0,en:"That's a bit outside the scope of this meeting.",ko:"그건 이 회의의 범위를 벗어납니다.",chunks:[["That's a bit","그건 약간"],["outside the scope","범위 밖의"],["of this meeting","이 회의의"]],tip:"회의가 산으로 갈 때 주제를 되돌리는 표현.",diff:3},
+{id:19,lv:4,cat:'office',day:0,en:"I think we should take a step back and look at the bigger picture.",ko:"한 발 물러서서 큰 그림을 봐야 할 것 같습니다.",chunks:[["I think we should","~해야 할 것 같습니다"],["take a step back","한 발 물러서다"],["and look at the bigger picture","큰 그림을 보다"]],tip:"세부사항에 매몰됐을 때 전략적 시각을 환기.",diff:3},
+{id:20,lv:2,cat:'office',day:0,en:"Let's table this discussion for now.",ko:"이 논의는 일단 보류합시다.",chunks:[["Let's table","~를 보류합시다"],["this discussion","이 논의를"],["for now","지금은"]],tip:"미국식 'table'은 '보류하다'. 영국식은 반대로 '제안하다'!",diff:2},
+{id:21,lv:2,cat:'travel',day:0,en:"Is there anywhere you'd recommend around here?",ko:"이 근처에 추천해주실 곳 있나요?",chunks:[["Is there anywhere","어딘가 있나요"],["you'd recommend","당신이 추천할"],["around here","이 근처에"]],tip:"현지인에게 맛집/명소를 물을 때.",diff:2},
+{id:22,lv:1,cat:'travel',day:0,en:"I'd like to check in, please.",ko:"체크인하고 싶습니다.",chunks:[["I'd like to","~하고 싶습니다"],["check in","체크인하다"],["please","부탁드립니다"]],tip:"호텔/공항에서 필수. 'I want to' 보다 정중.",diff:1},
+{id:23,lv:1,cat:'travel',day:0,en:"Could you take a picture of us?",ko:"저희 사진 좀 찍어주시겠어요?",chunks:[["Could you","~해주시겠어요"],["take a picture","사진을 찍다"],["of us","저희의"]],tip:"관광지에서 자주 쓰는 표현.",diff:1},
+{id:24,lv:1,cat:'travel',day:0,en:"How long does it take to get there?",ko:"거기까지 얼마나 걸리나요?",chunks:[["How long","얼마나 오래"],["does it take","걸리나요"],["to get there","거기에 도착하는 데"]],tip:"교통수단/이동시간 필수 표현.",diff:1},
+{id:25,lv:2,cat:'travel',day:0,en:"I'm allergic to peanuts. Does this contain any?",ko:"저는 땅콩 알레르기가 있어요. 이거 들어있나요?",chunks:[["I'm allergic to","~에 알레르기가 있다"],["peanuts","땅콩"],["Does this contain any","이것에 들어있나요"]],tip:"식당에서 안전을 위한 필수 표현.",diff:2},
+{id:26,lv:2,cat:'travel',day:0,en:"We're a party of four. Do you have a table available?",ko:"4명인데요, 자리 있나요?",chunks:[["We're a party of four","4인 일행입니다"],["Do you have","~가 있나요"],["a table available","이용 가능한 테이블"]],tip:"'party'는 여기서 '일행'이라는 뜻.",diff:2},
+{id:27,lv:2,cat:'travel',day:0,en:"Excuse me, I think you gave me the wrong change.",ko:"실례합니다, 거스름돈이 잘못된 것 같아요.",chunks:[["Excuse me","실례합니다"],["I think you gave me","~를 주신 것 같아요"],["the wrong change","잘못된 거스름돈"]],tip:"'I think'을 넣으면 부드러워집니다.",diff:2},
+{id:28,lv:1,cat:'travel',day:0,en:"Is this seat taken?",ko:"이 자리 비어있나요?",chunks:[["Is this seat","이 좌석이"],["taken","차지된"]],tip:"카페, 기차, 공항 어디서나 쓸 수 있는 표현.",diff:1},
+{id:29,lv:2,cat:'travel',day:0,en:"I got lost. Could you point me in the right direction?",ko:"길을 잃었어요. 방향을 알려주시겠어요?",chunks:[["I got lost","길을 잃었다"],["Could you point me","가리켜 주시겠어요"],["in the right direction","올바른 방향으로"]],tip:"GPS가 안 될 때 현지인에게 도움 요청.",diff:2},
+{id:30,lv:1,cat:'travel',day:0,en:"What time is the last train back?",ko:"돌아가는 마지막 기차가 몇 시인가요?",chunks:[["What time is","몇 시인가요"],["the last train","마지막 기차가"],["back","돌아가는"]],tip:"'train'을 'bus/ferry'로 교체 가능.",diff:1},
+// === Day 1 ===
+{id:31,lv:1,cat:'emotions',day:1,en:"I feel so tired today.",ko:"오늘 너무 피곤해요.",chunks:[["I feel","나는 느끼다"],["so tired","너무 피곤한"],["today","오늘"]],tip:"'I feel + 형용사' 감정 표현의 기본 패턴.",diff:1},
+{id:32,lv:1,cat:'parenting',day:1,en:"Be careful, sweetie!",ko:"조심해, 우리 아가!",chunks:[["Be careful","조심해"],["sweetie","자기야"]],tip:"'honey', 'dear'로도 교체 가능한 애칭.",diff:1},
+{id:33,lv:2,cat:'sns',day:1,en:"This went viral overnight.",ko:"이게 하룻밤 사이에 바이럴 됐어.",chunks:[["This went","이것이 ~되었다"],["viral","바이럴"],["overnight","하룻밤 사이에"]],tip:"'go viral'은 SNS 필수 표현.",diff:2},
+{id:34,lv:2,cat:'interview',day:1,en:"I'm a quick learner.",ko:"저는 빠르게 배우는 편입니다.",chunks:[["I'm a","저는 ~입니다"],["quick learner","빠른 학습자"]],tip:"경험 부족을 보완하는 면접 핵심 표현.",diff:1},
+{id:35,lv:2,cat:'emotions',day:1,en:"That really hurt my feelings.",ko:"그 말에 정말 상처 받았어요.",chunks:[["That really","그것이 정말"],["hurt","상처를 주다"],["my feelings","내 감정에"]],tip:"'hurt'의 과거형도 'hurt'입니다.",diff:2},
+{id:36,lv:3,cat:'nuance',day:1,en:"It's not that I don't want to — it's just that I can't.",ko:"하기 싫은 게 아니라 못하는 거예요.",chunks:[["It's not that","~한 게 아니라"],["I don't want to","하기 싫다"],["it's just that I can't","단지 못하는 것이다"]],tip:"'It's not that A, it's that B' 오해를 풀 때 유용.",diff:3},
+{id:37,lv:3,cat:'interview',day:1,en:"I thrive under pressure.",ko:"저는 압박 속에서 잘 해냅니다.",chunks:[["I thrive","나는 잘 해내다"],["under pressure","압박 속에서"]],tip:"'thrive'는 'survive'보다 적극적인 표현.",diff:2},
+// === Day 2 ===
+{id:38,lv:1,cat:'daily',day:2,en:"I'll be right back.",ko:"금방 돌아올게요.",chunks:[["I'll be","나는 ~할 것이다"],["right back","바로 돌아오는"]],tip:"'right'이 '바로/곧'의 의미로 쓰입니다.",diff:1},
+{id:39,lv:1,cat:'emotions',day:2,en:"I'm so proud of you!",ko:"네가 정말 자랑스러워!",chunks:[["I'm so","나는 매우"],["proud of","자랑스러운"],["you","너를"]],tip:"칭찬과 격려의 핵심 표현.",diff:1},
+{id:40,lv:2,cat:'parenting',day:2,en:"Did you finish your homework?",ko:"숙제 다 했어?",chunks:[["Did you finish","다 했니?"],["your homework","네 숙제"]],tip:"과거시제로 '완료 여부'를 묻는 기본 패턴.",diff:1},
+{id:41,lv:2,cat:'sns',day:2,en:"Drop a comment below!",ko:"아래에 댓글 달아주세요!",chunks:[["Drop","남기다"],["a comment","댓글을"],["below","아래에"]],tip:"'Drop'은 캐주얼한 '남기다'. 크리에이터 필수.",diff:1},
+{id:42,lv:3,cat:'office',day:2,en:"Let's align on the deliverables before we proceed.",ko:"진행하기 전에 결과물에 대해 맞춰봅시다.",chunks:[["Let's align on","~에 대해 맞추다"],["the deliverables","결과물"],["before we proceed","진행하기 전에"]],tip:"'align'은 '방향을 맞추다', 'deliverable'은 '납품물'.",diff:3},
+{id:43,lv:3,cat:'emotions',day:2,en:"I'm overwhelmed with everything going on.",ko:"이것저것 일이 많아서 벅차요.",chunks:[["I'm overwhelmed","나는 압도당했다"],["with everything","모든 것에"],["going on","일어나고 있는"]],tip:"'overwhelmed'는 '감당이 안 될 정도로 많은' 느낌.",diff:2},
+{id:44,lv:4,cat:'nuance',day:2,en:"There's a fine line between confidence and arrogance.",ko:"자신감과 오만 사이에는 미세한 차이가 있다.",chunks:[["There's a fine line","미세한 경계가 있다"],["between confidence","자신감 사이의"],["and arrogance","그리고 오만"]],tip:"'fine line'은 미묘한 경계를 뜻합니다.",diff:3},
+// === Day 3 ===
+{id:45,lv:1,cat:'travel',day:3,en:"One ticket, please.",ko:"표 한 장 주세요.",chunks:[["One ticket","표 한 장"],["please","부탁합니다"]],tip:"가장 기본적인 여행 표현.",diff:1},
+{id:46,lv:2,cat:'daily',day:3,en:"I'm running a bit late.",ko:"좀 늦을 것 같아요.",chunks:[["I'm running","나는 ~하고 있다"],["a bit late","약간 늦은"]],tip:"'running late'는 '지각하고 있는 중'.",diff:1},
+{id:47,lv:2,cat:'interview',day:3,en:"I'm passionate about this field.",ko:"이 분야에 열정이 있습니다.",chunks:[["I'm passionate","나는 열정적이다"],["about","~에 대해"],["this field","이 분야"]],tip:"'passionate'은 'interested'보다 강력.",diff:2},
+{id:48,lv:3,cat:'sns',day:3,en:"The algorithm keeps pushing this content.",ko:"알고리즘이 이 콘텐츠를 계속 밀어주네.",chunks:[["The algorithm","알고리즘이"],["keeps pushing","계속 밀어주다"],["this content","이 콘텐츠를"]],tip:"'keep ~ing'은 '계속 ~하다'.",diff:2},
+{id:49,lv:3,cat:'travel',day:3,en:"Could you recommend a good local restaurant?",ko:"괜찮은 현지 맛집 추천해주실 수 있나요?",chunks:[["Could you recommend","추천해주시겠어요"],["a good local","괜찮은 현지의"],["restaurant","식당"]],tip:"'local'이 핵심. 관광객이 아닌 현지인처럼.",diff:2},
+{id:50,lv:4,cat:'office',day:3,en:"I'd appreciate it if you could prioritize this by end of day.",ko:"오늘 안으로 우선순위에 넣어주시면 감사하겠습니다.",chunks:[["I'd appreciate it if","~해주시면 감사하겠습니다"],["you could prioritize","우선순위로 두다"],["this by end of day","이것을 오늘 말까지"]],tip:"정중하면서도 긴급함을 전달하는 최고의 표현.",diff:3},
+{id:51,lv:4,cat:'interview',day:3,en:"My greatest strength is my ability to adapt quickly to new environments.",ko:"저의 가장 큰 강점은 새로운 환경에 빠르게 적응하는 능력입니다.",chunks:[["My greatest strength is","가장 큰 강점은"],["my ability to adapt quickly","빠르게 적응하는 능력"],["to new environments","새로운 환경에"]],tip:"면접 단골 '강점' 질문 대응. 구체적+긍정적.",diff:3},
+// === Day 4 ===
+{id:52,lv:1,cat:'parenting',day:4,en:"Time for bed, honey.",ko:"잘 시간이야, 자기야.",chunks:[["Time for","~할 시간이야"],["bed","잠자리"],["honey","자기야"]],tip:"'Time for + 명사'는 '~할 시간'.",diff:1},
+{id:53,lv:1,cat:'emotions',day:4,en:"Don't worry about it.",ko:"걱정하지 마.",chunks:[["Don't worry","걱정하지 마"],["about it","그것에 대해"]],tip:"가장 많이 쓰는 위로 표현.",diff:1},
+{id:54,lv:2,cat:'travel',day:4,en:"Is breakfast included?",ko:"조식 포함인가요?",chunks:[["Is","~인가요"],["breakfast","아침식사가"],["included","포함된"]],tip:"호텔 체크인 시 필수 질문.",diff:1},
+{id:55,lv:2,cat:'emotions',day:4,en:"I'm fed up with this situation.",ko:"이 상황에 진절머리가 나요.",chunks:[["I'm fed up","나는 질렸다"],["with","~에 대해"],["this situation","이 상황"]],tip:"'fed up with'는 'tired of'보다 강렬.",diff:2},
+{id:56,lv:3,cat:'daily',day:4,en:"I've been meaning to tell you something.",ko:"너한테 말하려고 했던 게 있어.",chunks:[["I've been meaning to","~하려고 했었다"],["tell you","너에게 말하다"],["something","무언가를"]],tip:"'have been meaning to'는 '(한동안) ~하려고 했다'.",diff:2},
+{id:57,lv:3,cat:'office',day:4,en:"We need to streamline the workflow to meet the deadline.",ko:"마감을 맞추려면 업무 프로세스를 간소화해야 합니다.",chunks:[["We need to streamline","간소화해야 한다"],["the workflow","업무 프로세스를"],["to meet the deadline","마감을 맞추기 위해"]],tip:"'streamline'은 '간소화/최적화하다'.",diff:3},
+{id:58,lv:5,cat:'nuance',day:4,en:"What you perceive as a setback might actually be a setup for something greater.",ko:"좌절이라고 느끼는 것이 사실은 더 큰 무언가를 위한 준비일 수 있습니다.",chunks:[["What you perceive as","~라고 인식하는 것"],["a setback","좌절"],["might actually be a setup","사실은 준비일 수 있다"],["for something greater","더 큰 무언가를 위한"]],tip:"'setback vs setup' 언어유희. 관점 전환의 고급 표현.",diff:4},
+// === Day 5 ===
+{id:59,lv:1,cat:'daily',day:5,en:"What do you think?",ko:"어떻게 생각해?",chunks:[["What do you","당신은 어떻게"],["think","생각하나요"]],tip:"의견을 물을 때 가장 자연스러운 표현.",diff:1},
+{id:60,lv:2,cat:'parenting',day:5,en:"You need to share with your sister.",ko:"언니랑 나눠 써야지.",chunks:[["You need to","너는 ~해야 해"],["share","나누다"],["with your sister","언니와"]],tip:"'share with'는 사회성 교육의 핵심.",diff:1},
+{id:61,lv:2,cat:'office',day:5,en:"Can I take this offline?",ko:"이건 따로 이야기해도 될까요?",chunks:[["Can I take","~해도 될까요"],["this offline","이것을 오프라인으로"]],tip:"'offline'은 '별도로/따로'의 뜻.",diff:2},
+{id:62,lv:3,cat:'emotions',day:5,en:"I didn't mean to make you feel that way.",ko:"네가 그렇게 느끼게 하려던 건 아니었어.",chunks:[["I didn't mean to","~하려던 건 아니었다"],["make you feel","네가 느끼게 하다"],["that way","그렇게"]],tip:"의도치 않게 상처를 줬을 때 진심 어린 사과.",diff:2},
+{id:63,lv:3,cat:'interview',day:5,en:"I believe my experience aligns well with this role.",ko:"제 경험이 이 직무에 잘 맞는다고 생각합니다.",chunks:[["I believe","저는 ~라고 생각합니다"],["my experience aligns well","제 경험이 잘 맞다"],["with this role","이 직무에"]],tip:"'align with'는 비즈니스 핵심 표현.",diff:2},
+{id:64,lv:4,cat:'sns',day:5,en:"The engagement rate on this post is through the roof.",ko:"이 게시물의 참여율이 대박이야.",chunks:[["The engagement rate","참여율이"],["on this post","이 게시물의"],["is through the roof","천정을 뚫다"]],tip:"'through the roof'는 '극도로 높다'.",diff:3},
+{id:65,lv:4,cat:'emotions',day:5,en:"I've been bottling up my emotions for too long.",ko:"너무 오래 감정을 억누르고 있었어요.",chunks:[["I've been bottling up","억누르다"],["my emotions","내 감정을"],["for too long","너무 오래"]],tip:"'bottle up'은 감정을 병에 담아 가두는 이미지.",diff:3},
+// === Day 6 ===
+{id:66,lv:1,cat:'travel',day:6,en:"How much is this?",ko:"이거 얼마예요?",chunks:[["How much","얼마"],["is this","이것이"]],tip:"쇼핑 시 가장 기본적인 질문.",diff:1},
+{id:67,lv:2,cat:'daily',day:6,en:"I'm not sure I follow.",ko:"무슨 말인지 잘 모르겠어요.",chunks:[["I'm not sure","잘 모르겠다"],["I follow","이해가 되는"]],tip:"'I don't understand'보다 부드러운 표현.",diff:2},
+{id:68,lv:2,cat:'sns',day:6,en:"Don't forget to like and subscribe!",ko:"좋아요와 구독 잊지 마세요!",chunks:[["Don't forget to","~잊지 마세요"],["like","좋아요"],["and subscribe","그리고 구독하다"]],tip:"유튜브 크리에이터 엔딩 멘트. 전 세계 공통!",diff:1},
+{id:69,lv:3,cat:'parenting',day:6,en:"I know it's hard, but you need to keep trying.",ko:"힘든 거 알아, 그래도 계속 해봐야 해.",chunks:[["I know it's hard","힘든 거 알아"],["but you need to","하지만 ~해야 해"],["keep trying","계속 시도하다"]],tip:"공감 + 격려의 완벽한 조합.",diff:2},
+{id:70,lv:3,cat:'nuance',day:6,en:"Just because it's legal doesn't mean it's right.",ko:"합법이라고 해서 옳은 건 아니다.",chunks:[["Just because","~라고 해서"],["it's legal","합법이다"],["doesn't mean","~를 의미하지 않는다"],["it's right","옳다"]],tip:"'Just because A doesn't mean B' 논리적 반박 패턴.",diff:3},
+{id:71,lv:4,cat:'office',day:6,en:"Let's not lose sight of what we set out to accomplish.",ko:"우리가 처음에 달성하려 했던 것을 놓치지 맙시다.",chunks:[["Let's not lose sight of","~를 놓치지 맙시다"],["what we set out","목표한 것"],["to accomplish","달성하기 위해"]],tip:"'lose sight of'는 '시야에서 놓치다'.",diff:3},
+{id:72,lv:5,cat:'interview',day:6,en:"Throughout my career, I've consistently demonstrated the ability to turn challenges into opportunities for growth.",ko:"경력 전반에 걸쳐, 도전을 성장의 기회로 전환하는 능력을 꾸준히 입증해왔습니다.",chunks:[["Throughout my career","경력 전반에 걸쳐"],["I've consistently demonstrated","꾸준히 입증해왔다"],["the ability to turn challenges","도전을 전환하는 능력"],["into opportunities for growth","성장의 기회로"]],tip:"시니어급 면접 자기소개. 'turn A into B' + 'consistently'.",diff:4},
+// === Day 7 ===
+{id:73,lv:1,cat:'emotions',day:7,en:"That makes me happy.",ko:"그거 듣니까 기뻐.",chunks:[["That makes me","그것이 나를 ~하게 하다"],["happy","행복한"]],tip:"'make + 목적어 + 형용사' 사역동사 패턴.",diff:1},
+{id:74,lv:2,cat:'travel',day:7,en:"We'd like a table by the window.",ko:"창가 자리로 부탁드려요.",chunks:[["We'd like","~를 원합니다"],["a table","테이블을"],["by the window","창가에"]],tip:"'by the window/door/entrance' 좌석 선호.",diff:1},
+{id:75,lv:2,cat:'interview',day:7,en:"I work well both independently and in a team.",ko:"혼자서도 팀으로도 잘 일합니다.",chunks:[["I work well","나는 잘 일한다"],["both independently","독립적으로도"],["and in a team","팀에서도"]],tip:"'both A and B'로 유연성 강조.",diff:2},
+{id:76,lv:3,cat:'daily',day:7,en:"Something doesn't feel right about this.",ko:"뭔가 이상한 느낌이 드는데.",chunks:[["Something doesn't feel","뭔가 느낌이 ~않다"],["right","맞는"],["about this","이것에 대해"]],tip:"'feel right'은 '느낌이 맞다'. 직감 표현.",diff:2},
+{id:77,lv:3,cat:'sns',day:7,en:"This creator really knows how to hook the audience.",ko:"이 크리에이터는 시청자 잡는 법을 잘 안다.",chunks:[["This creator","이 크리에이터는"],["really knows how to","~하는 법을 잘 안다"],["hook the audience","시청자를 사로잡다"]],tip:"'hook'은 '갈고리로 낚다' → '사로잡다'.",diff:2},
+{id:78,lv:4,cat:'nuance',day:7,en:"The way you frame the question often determines the answer you get.",ko:"질문을 어떻게 구성하느냐가 얻는 답을 결정한다.",chunks:[["The way you frame","구성하는 방식이"],["the question","질문을"],["often determines","종종 결정한다"],["the answer you get","당신이 얻는 답을"]],tip:"'frame'은 '틀을 잡다/구성하다'. 커뮤니케이션 원리.",diff:3},
+{id:79,lv:5,cat:'office',day:7,en:"Given the current market conditions, I'd recommend we reassess our go-to-market strategy before committing additional resources.",ko:"현재 시장 상황을 고려하면, 추가 자원을 투입하기 전에 시장 진출 전략을 재평가할 것을 권합니다.",chunks:[["Given the current market conditions","시장 상황을 고려하면"],["I'd recommend we reassess","재평가할 것을 권합니다"],["our go-to-market strategy","시장 진출 전략을"],["before committing additional resources","추가 자원 투입 전에"]],tip:"C-Level 회의 표현. 'go-to-market strategy'는 비즈니스 핵심 용어.",diff:5},
+// === Day 8 ===
+{id:80,lv:1,cat:'parenting',day:8,en:"Say please and thank you.",ko:"부탁합니다, 감사합니다 하렴.",chunks:[["Say","~라고 말해"],["please","부탁합니다"],["and thank you","그리고 감사합니다"]],tip:"예의 교육의 기본.",diff:1},
+{id:81,lv:1,cat:'daily',day:8,en:"See you later!",ko:"나중에 봐!",chunks:[["See you","보자"],["later","나중에"]],tip:"'Bye'보다 캐주얼하고 친근한 작별 인사.",diff:1},
+{id:82,lv:2,cat:'emotions',day:8,en:"I'm really disappointed in myself.",ko:"내 자신이 정말 실망스러워.",chunks:[["I'm really disappointed","정말 실망스럽다"],["in myself","내 자신에게"]],tip:"'disappointed in + 사람', 'disappointed with + 결과'.",diff:2},
+{id:83,lv:2,cat:'office',day:8,en:"Let me sync up with the team first.",ko:"팀이랑 먼저 맞춰보겠습니다.",chunks:[["Let me","제가 ~할게요"],["sync up","동기화/맞추다"],["with the team first","팀과 먼저"]],tip:"'sync up'은 '정보를 맞추다/정렬하다'.",diff:2},
+{id:84,lv:3,cat:'travel',day:8,en:"I'd like to extend my stay for two more nights.",ko:"2박 더 연장하고 싶습니다.",chunks:[["I'd like to extend","연장하고 싶습니다"],["my stay","제 숙박을"],["for two more nights","2박 더"]],tip:"'extend'는 '연장하다', 'stay'는 '숙박'.",diff:2},
+{id:85,lv:4,cat:'interview',day:8,en:"I'm confident that my track record speaks for itself.",ko:"제 실적이 스스로를 증명한다고 확신합니다.",chunks:[["I'm confident that","~라고 확신합니다"],["my track record","제 실적이"],["speaks for itself","스스로를 말해준다"]],tip:"'speaks for itself'는 '설명 불필요할 만큼 명백'.",diff:3},
+{id:86,lv:5,cat:'emotions',day:8,en:"I've come to realize that vulnerability isn't a weakness — it's the courage to be authentically yourself.",ko:"취약함은 약점이 아니라 진정한 자신이 될 수 있는 용기라는 것을 깨달았습니다.",chunks:[["I've come to realize","깨닫게 되었다"],["vulnerability isn't a weakness","취약함은 약점이 아니다"],["it's the courage","그것은 용기이다"],["to be authentically yourself","진정한 자신이 되는"]],tip:"'come to realize'는 '점차 깨닫다'. 성숙한 자기 인식.",diff:4},
+// === Day 9 ===
+{id:87,lv:1,cat:'travel',day:9,en:"Can I have the menu?",ko:"메뉴판 볼 수 있을까요?",chunks:[["Can I have","~를 받을 수 있을까요"],["the menu","메뉴판을"]],tip:"'Can I have' = 'Could I get'.",diff:1},
+{id:88,lv:2,cat:'parenting',day:9,en:"I'm so proud of how hard you worked.",ko:"네가 열심히 한 게 정말 자랑스러워.",chunks:[["I'm so proud of","~가 자랑스럽다"],["how hard","얼마나 열심히"],["you worked","네가 했는지"]],tip:"결과가 아닌 노력을 칭찬. 성장 마인드셋.",diff:2},
+{id:89,lv:2,cat:'daily',day:9,en:"I'll figure it out somehow.",ko:"어떻게든 해결할게.",chunks:[["I'll figure","알아낼 거야"],["it out","그것을"],["somehow","어떻게든"]],tip:"'figure out'은 '해결하다'. 자주 쓰이는 구동사.",diff:2},
+{id:90,lv:3,cat:'office',day:9,en:"I think we're overcomplicating this.",ko:"우리가 이걸 너무 복잡하게 만들고 있는 것 같아요.",chunks:[["I think we're","우리가 ~하는 것 같다"],["overcomplicating","너무 복잡하게 만드는"],["this","이것을"]],tip:"'over-'는 '지나치게'의 접두사.",diff:2},
+{id:91,lv:3,cat:'emotions',day:9,en:"I can't help but feel a little jealous.",ko:"질투가 좀 나는 걸 어쩔 수 없어.",chunks:[["I can't help but","~하지 않을 수 없다"],["feel","느끼다"],["a little jealous","약간 질투가 나는"]],tip:"'can't help but + 동사원형'은 억누를 수 없는 감정.",diff:2},
+{id:92,lv:4,cat:'sns',day:9,en:"The content landscape has shifted dramatically in the past year.",ko:"콘텐츠 환경이 지난 1년간 극적으로 바뀌었다.",chunks:[["The content landscape","콘텐츠 환경이"],["has shifted dramatically","극적으로 변화했다"],["in the past year","지난 1년간"]],tip:"'landscape'는 '전체적인 환경/판도'.",diff:3},
+{id:93,lv:4,cat:'nuance',day:9,en:"Knowing when to speak and when to listen is an underrated skill.",ko:"언제 말하고 언제 들을지 아는 것은 과소평가된 기술이다.",chunks:[["Knowing when to speak","언제 말할지 아는 것"],["and when to listen","그리고 언제 들을지"],["is an underrated skill","과소평가된 기술이다"]],tip:"'underrated'는 '과소평가된'. 반대: 'overrated'.",diff:3},
+// === Day 10 ===
+{id:94,lv:1,cat:'emotions',day:10,en:"I'm a bit nervous.",ko:"좀 긴장돼요.",chunks:[["I'm a bit","좀/약간"],["nervous","긴장되는"]],tip:"'a bit'은 감정 강도를 낮춰주는 완충어.",diff:1},
+{id:95,lv:2,cat:'travel',day:10,en:"Could we have the bill, please?",ko:"계산서 좀 주시겠어요?",chunks:[["Could we have","~를 주시겠어요"],["the bill","계산서를"],["please","부탁합니다"]],tip:"미국: 'check', 영국: 'bill'.",diff:1},
+{id:96,lv:2,cat:'sns',day:10,en:"I need to take a break from social media.",ko:"SNS 좀 쉬어야겠어.",chunks:[["I need to","~해야겠다"],["take a break","쉬다"],["from social media","소셜미디어로부터"]],tip:"'take a break from'은 '~로부터 쉬다'.",diff:1},
+{id:97,lv:3,cat:'interview',day:10,en:"I'm looking for a role where I can make a meaningful impact.",ko:"의미 있는 영향을 줄 수 있는 직무를 찾고 있습니다.",chunks:[["I'm looking for a role","직무를 찾고 있습니다"],["where I can make","내가 만들 수 있는"],["a meaningful impact","의미 있는 영향"]],tip:"'meaningful impact'이 핵심. 동기 부여를 보여주는 표현.",diff:2},
+{id:98,lv:3,cat:'nuance',day:10,en:"What sounds like a compliment can sometimes be a subtle insult.",ko:"칭찬처럼 들리는 것이 때로는 은근한 모욕일 수 있다.",chunks:[["What sounds like","~처럼 들리는 것이"],["a compliment","칭찬"],["can sometimes be","때로는 ~일 수 있다"],["a subtle insult","은근한 모욕"]],tip:"'subtle'은 '미묘한/은근한'. 백핸드 칭찬 설명.",diff:3},
+{id:99,lv:4,cat:'office',day:10,en:"We should circle back after we've had time to digest the data.",ko:"데이터를 소화할 시간을 가진 후에 다시 논의합시다.",chunks:[["We should circle back","다시 논의합시다"],["after we've had time","시간을 가진 후에"],["to digest the data","데이터를 소화하기 위해"]],tip:"'digest'는 비유적으로 '정보를 이해하다/흡수하다'.",diff:3},
+{id:100,lv:5,cat:'nuance',day:10,en:"The difference between 'I'm sorry you feel that way' and 'I'm sorry I made you feel that way' is accountability.",ko:"'그렇게 느끼셨다니 유감'과 '제가 그렇게 느끼게 해서 죄송'의 차이는 책임감입니다.",chunks:[["The difference between","~의 차이는"],["I'm sorry you feel that way","유감이다"],["I'm sorry I made you feel that way","죄송하다"],["is accountability","책임감이다"]],tip:"전자는 책임 회피, 후자는 책임 인정. 진정한 사과의 기술.",diff:5},
+// === Day 11 ===
+{id:101,lv:1,cat:'daily',day:11,en:"No problem at all.",ko:"전혀 문제없어요.",chunks:[["No problem","문제없다"],["at all","전혀"]],tip:"'You're welcome' 대신 쓰는 캐주얼한 표현.",diff:1},
+{id:102,lv:2,cat:'emotions',day:11,en:"I feel like giving up sometimes.",ko:"가끔 포기하고 싶을 때가 있어.",chunks:[["I feel like","~하고 싶다"],["giving up","포기하는 것"],["sometimes","가끔"]],tip:"'feel like + ~ing'은 '~하고 싶다'.",diff:2},
+{id:103,lv:2,cat:'office',day:11,en:"I'll loop you in on the email.",ko:"이메일에 당신을 넣어둘게요.",chunks:[["I'll loop","넣어두겠다"],["you in","당신을"],["on the email","이메일에"]],tip:"'loop in'은 '정보 공유 대상에 포함시키다'.",diff:2},
+{id:104,lv:3,cat:'parenting',day:11,en:"It's okay to make mistakes — that's how you learn.",ko:"실수해도 괜찮아 — 그렇게 배우는 거야.",chunks:[["It's okay to","~해도 괜찮다"],["make mistakes","실수를 하다"],["that's how you learn","그게 배우는 방법이야"]],tip:"성장 마인드셋의 핵심 부모 표현.",diff:2},
+{id:105,lv:3,cat:'daily',day:11,en:"I've been putting this off for way too long.",ko:"이걸 너무 오래 미뤄왔어.",chunks:[["I've been putting","~하고 있었다"],["this off","이것을 미루다"],["for way too long","너무 오랫동안"]],tip:"'put off'는 '미루다'. 'way'는 강조.",diff:2},
+{id:106,lv:4,cat:'emotions',day:11,en:"The more I try to let go, the harder it is to move on.",ko:"놓으려 하면 할수록 앞으로 나아가기가 더 힘들어요.",chunks:[["The more I try","~하면 할수록"],["to let go","놓아주려고"],["the harder it is","더 어렵다"],["to move on","앞으로 나아가기가"]],tip:"'The more A, the more B' 비교급 강조 구문.",diff:3},
+{id:107,lv:5,cat:'office',day:11,en:"I'd like to propose a phased rollout approach to minimize risk while still meeting our quarterly objectives.",ko:"리스크를 최소화하면서도 분기 목표를 달성하기 위해 단계적 출시 방식을 제안드립니다.",chunks:[["I'd like to propose","제안드리고 싶습니다"],["a phased rollout approach","단계적 출시 방식을"],["to minimize risk","리스크를 최소화하기 위해"],["while still meeting our quarterly objectives","분기 목표를 달성하면서"]],tip:"'phased rollout'은 '단계적 출시', 'quarterly objectives'는 '분기 목표'.",diff:5},
+// === Day 12 ===
+{id:108,lv:1,cat:'parenting',day:12,en:"Wash your hands first.",ko:"먼저 손 씻어.",chunks:[["Wash","씻어"],["your hands","네 손을"],["first","먼저"]],tip:"명령문의 가장 기본적인 형태.",diff:1},
+{id:109,lv:2,cat:'daily',day:12,en:"That sounds like a plan.",ko:"좋은 계획이네.",chunks:[["That sounds like","~처럼 들린다"],["a plan","계획"]],tip:"'Sounds good!'보다 한 단계 자연스러운 동의.",diff:1},
+{id:110,lv:2,cat:'interview',day:12,en:"I'm a team player who values collaboration.",ko:"저는 협업을 중시하는 팀 플레이어입니다.",chunks:[["I'm a team player","팀 플레이어입니다"],["who values","~를 중시하는"],["collaboration","협업"]],tip:"관계절 'who values'로 자기 설명을 확장.",diff:2},
+{id:111,lv:3,cat:'sns',day:12,en:"Building an authentic personal brand takes time and consistency.",ko:"진정성 있는 퍼스널 브랜드를 구축하려면 시간과 일관성이 필요하다.",chunks:[["Building an authentic","진정성 있는 것을 구축"],["personal brand","퍼스널 브랜드"],["takes time and consistency","시간과 일관성이 필요하다"]],tip:"'authentic'은 '진짜의/진정성 있는'. SNS 시대 핵심어.",diff:2},
+{id:112,lv:3,cat:'travel',day:12,en:"Is there a shuttle service from the airport to the hotel?",ko:"공항에서 호텔까지 셔틀 서비스가 있나요?",chunks:[["Is there","~가 있나요"],["a shuttle service","셔틀 서비스가"],["from the airport to the hotel","공항에서 호텔까지"]],tip:"공항 도착 후 필수 질문.",diff:2},
+{id:113,lv:4,cat:'nuance',day:12,en:"People don't remember what you said — they remember how you made them feel.",ko:"사람들은 뭘 말했는지가 아니라 어떤 기분을 느끼게 했는지를 기억한다.",chunks:[["People don't remember","사람들은 기억하지 않는다"],["what you said","당신이 말한 것을"],["they remember how","그들은 기억한다"],["you made them feel","느끼게 했는지"]],tip:"Maya Angelou 명언. 'make + 목적어 + feel' 사역동사 패턴.",diff:3},
+{id:114,lv:5,cat:'interview',day:12,en:"Having led cross-functional teams of over fifteen people, I've developed a leadership style that balances empowerment with accountability.",ko:"15명 이상의 크로스펑셔널 팀을 이끈 경험을 통해 권한 위임과 책임의 균형을 맞추는 리더십을 개발했습니다.",chunks:[["Having led cross-functional teams","크로스펑셔널 팀을 이끈 경험으로"],["of over fifteen people","15명 이상의"],["I've developed a leadership style","리더십 스타일을 개발했다"],["that balances empowerment with accountability","권한 위임과 책임의 균형"]],tip:"분사구문 'Having led'로 시작. 경험→결과를 자연스럽게 연결.",diff:5},
+// === Day 13 ===
+{id:115,lv:1,cat:'travel',day:13,en:"Where is the exit?",ko:"출구가 어디예요?",chunks:[["Where is","~가 어디에"],["the exit","출구"]],tip:"비상시에도 쓸 수 있는 필수 표현.",diff:1},
+{id:116,lv:2,cat:'parenting',day:13,en:"Let me help you with that.",ko:"그거 내가 도와줄게.",chunks:[["Let me help","내가 도와줄게"],["you","너를"],["with that","그것에 대해"]],tip:"'help + 목적어 + with' 패턴.",diff:1},
+{id:117,lv:2,cat:'emotions',day:13,en:"I miss you so much.",ko:"너무너무 보고 싶어.",chunks:[["I miss","~가 보고 싶다"],["you","너를"],["so much","너무너무"]],tip:"사람, 장소, 음식 등에 모두 사용 가능.",diff:1},
+{id:118,lv:3,cat:'office',day:13,en:"I'd suggest we break this into smaller, more manageable tasks.",ko:"이걸 더 작고 관리 가능한 과업으로 나누는 것을 제안합니다.",chunks:[["I'd suggest we break this","나누는 것을 제안합니다"],["into smaller","더 작은 것으로"],["more manageable tasks","더 관리 가능한 과업"]],tip:"'break into'는 '~로 나누다'. 프로젝트 관리 핵심.",diff:3},
+{id:119,lv:3,cat:'emotions',day:13,en:"I feel torn between what I want and what I should do.",ko:"하고 싶은 것과 해야 할 것 사이에서 갈등해.",chunks:[["I feel torn","갈등을 느끼다"],["between what I want","원하는 것"],["and what I should do","해야 하는 것"]],tip:"'torn between A and B'는 'A와 B 사이에서 찢어지다'.",diff:3},
+{id:120,lv:4,cat:'interview',day:13,en:"I pride myself on being both detail-oriented and big-picture focused.",ko:"디테일과 큰 그림 모두를 놓치지 않는 것이 제 강점입니다.",chunks:[["I pride myself on","~를 자부합니다"],["being both detail-oriented","디테일에 집중하는"],["and big-picture focused","큰 그림에 집중하는"]],tip:"'pride oneself on'은 '~를 자부하다'.",diff:3},
+{id:121,lv:4,cat:'office',day:13,en:"Could we benchmark this against industry standards before making a final decision?",ko:"최종 결정 전에 업계 표준과 비교해볼 수 있을까요?",chunks:[["Could we benchmark this","벤치마크할 수 있을까요"],["against industry standards","업계 표준과"],["before making a final decision","최종 결정 전에"]],tip:"'benchmark'는 '기준 대비 비교하다'.",diff:3},
+// === Day 14 ===
+{id:122,lv:1,cat:'emotions',day:14,en:"That scared me!",ko:"깜짝 놀랐잖아!",chunks:[["That","그것이"],["scared me","나를 놀라게 했다"]],tip:"'scare'는 '겁을 주다/놀라게 하다'.",diff:1},
+{id:123,lv:2,cat:'travel',day:14,en:"Do you have any rooms available tonight?",ko:"오늘 밤 빈 방 있나요?",chunks:[["Do you have","~가 있나요"],["any rooms available","이용 가능한 방이"],["tonight","오늘 밤"]],tip:"예약 없이 호텔에 갈 때 필수.",diff:1},
+{id:124,lv:2,cat:'daily',day:14,en:"Let's just play it by ear.",ko:"그냥 상황 봐서 하자.",chunks:[["Let's just","그냥 ~하자"],["play it","대처하다"],["by ear","귀로/즉흥적으로"]],tip:"'악보 없이 귀로 연주하다'에서 유래.",diff:2},
+{id:125,lv:3,cat:'nuance',day:14,en:"Saying nothing sometimes says more than words ever could.",ko:"아무 말도 하지 않는 것이 때로는 어떤 말보다 더 많은 것을 말해준다.",chunks:[["Saying nothing","아무 말도 하지 않는 것이"],["sometimes says more","때로는 더 많은 것을 말한다"],["than words ever could","어떤 말보다도"]],tip:"'more than ~ ever could'는 '~이 결코 할 수 없는 것보다 더'.",diff:3},
+{id:126,lv:3,cat:'interview',day:14,en:"I'm not just looking for a job — I'm looking for the right fit.",ko:"단순히 직장이 아니라 맞는 곳을 찾고 있습니다.",chunks:[["I'm not just looking for","단순히 찾는 게 아니라"],["a job","직장"],["the right fit","맞는 곳"]],tip:"'fit'은 '적합함/궁합'. 진지함을 보여주는 표현.",diff:2},
+{id:127,lv:4,cat:'sns',day:14,en:"Understanding your audience's pain points is the key to creating content that converts.",ko:"청중의 고충을 이해하는 것이 전환을 이끄는 콘텐츠의 핵심이다.",chunks:[["Understanding your audience's","청중의 ~를 이해하는 것"],["pain points","고충"],["is the key to creating","만드는 핵심이다"],["content that converts","전환을 이끄는 콘텐츠"]],tip:"'pain point'는 '고객의 불편', 'convert'는 '전환하다'.",diff:3},
+{id:128,lv:5,cat:'emotions',day:14,en:"Growth often comes disguised as discomfort, and the moments that challenge us the most are usually the ones that shape us the most.",ko:"성장은 종종 불편함으로 위장해서 오며, 가장 힘든 순간이 가장 크게 성장시킵니다.",chunks:[["Growth often comes disguised","성장은 종종 위장해서 온다"],["as discomfort","불편함으로"],["the moments that challenge us the most","가장 힘들게 하는 순간"],["are the ones that shape us the most","가장 크게 만드는 것이다"]],tip:"'disguised as'는 '~로 위장한'. 성장의 역설.",diff:4},
+// === Day 15 ===
+{id:129,lv:1,cat:'daily',day:15,en:"Take your time.",ko:"천천히 해.",chunks:[["Take","취하다"],["your time","네 시간을"]],tip:"서두르지 말라는 배려 표현.",diff:1},
+{id:130,lv:2,cat:'office',day:15,en:"Let me take the lead on this one.",ko:"이건 제가 리드하겠습니다.",chunks:[["Let me take","제가 ~하겠습니다"],["the lead","리드를"],["on this one","이것에 대해"]],tip:"'take the lead'는 '앞장서다/리드하다'.",diff:2},
+{id:131,lv:2,cat:'sns',day:15,en:"Scrolling through my feed, I saw your post.",ko:"피드 보다가 네 게시물 봤어.",chunks:[["Scrolling through","~를 스크롤하면서"],["my feed","내 피드를"],["I saw your post","네 게시물을 봤어"]],tip:"분사구문으로 동시 동작 표현.",diff:2},
+{id:132,lv:3,cat:'travel',day:15,en:"We need to catch the last train, so let's not waste any time.",ko:"막차를 타야 하니까 시간 낭비하지 맙시다.",chunks:[["We need to catch","타야 한다"],["the last train","막차를"],["let's not waste","낭비하지 맙시다"],["any time","시간을"]],tip:"'catch a train'은 '기차를 타다'.",diff:2},
+{id:133,lv:3,cat:'office',day:15,en:"I want to make sure we're not duplicating efforts across teams.",ko:"팀 간 중복 업무가 없는지 확인하고 싶습니다.",chunks:[["I want to make sure","확인하고 싶습니다"],["we're not duplicating efforts","노력을 중복하지 않는지"],["across teams","팀 간에"]],tip:"'duplicate efforts'는 '업무 중복'.",diff:3},
+{id:134,lv:4,cat:'emotions',day:15,en:"Sometimes you have to distance yourself from people who bring out the worst in you.",ko:"때로는 최악을 끌어내는 사람들로부터 거리를 둬야 합니다.",chunks:[["Sometimes you have to","때로는 ~해야 한다"],["distance yourself from","~로부터 거리를 두다"],["people who bring out","끌어내는 사람들"],["the worst in you","당신의 최악을"]],tip:"'bring out the worst/best'는 '최악/최선을 끌어내다'.",diff:3},
+{id:135,lv:5,cat:'office',day:15,en:"Before we finalize the budget allocation, I'd like us to conduct a thorough cost-benefit analysis that accounts for both short-term ROI and long-term strategic value.",ko:"예산 배분을 확정하기 전에, 단기 ROI와 장기 전략적 가치를 모두 고려한 비용-편익 분석을 실시하고 싶습니다.",chunks:[["Before we finalize the budget allocation","예산 배분을 확정하기 전에"],["conduct a thorough cost-benefit analysis","철저한 비용-편익 분석을"],["that accounts for both short-term ROI","단기 ROI를 고려하는"],["and long-term strategic value","장기 전략적 가치"]],tip:"'cost-benefit analysis', 'budget allocation' 모두 비즈니스 핵심 용어.",diff:5},
+];
+
+// ============================================================
+// DAILY UNLOCK LOGIC (7:00 AM KST)
+// ============================================================
+function getUnlockDay(){
+  const kstMs=Date.now()+9*3600000;
+  const kstAdj=kstMs-7*3600000; // day boundary at 7AM KST
+  const kstDay=Math.floor(kstAdj/86400000);
+  let stored=localStorage.getItem('sf-install-day');
+  if(!stored){localStorage.setItem('sf-install-day',kstDay.toString());stored=kstDay.toString();}
+  return Math.max(0,kstDay-parseInt(stored));
+}
+
+function getNextUnlockMs(){
+  const kstMs=Date.now()+9*3600000;
+  const kstAdj=kstMs-7*3600000;
+  const nextBoundary=(Math.floor(kstAdj/86400000)+1)*86400000;
+  return nextBoundary+7*3600000-9*3600000-Date.now();
+}
+
+function getUnlockedSentences(){
+  const day=getUnlockDay();
+  return ALL_SENTENCES.filter(s=>s.day<=day);
+}
+
+// ============================================================
+// SM-2 Spaced Repetition
 // ============================================================
 function sm2(item,quality){
   let {ef=2.5,interval=1,reps=0}=item;
@@ -105,9 +256,6 @@ function getMemoryStrength(item){
   if(ratio<.5)return 'strong';if(ratio<1)return 'medium';return 'weak';
 }
 
-// ============================================================
-// Utility
-// ============================================================
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const clamp=(n,lo,hi)=>Math.min(hi,Math.max(lo,n));
 const shuffle=a=>[...a].sort(()=>Math.random()-.5);
@@ -115,9 +263,7 @@ const shuffle=a=>[...a].sort(()=>Math.random()-.5);
 // ============================================================
 // STORAGE
 // ============================================================
-function loadData(){
-  try{return JSON.parse(localStorage.getItem('sf-data'))||{}}catch{return{}}
-}
+function loadData(){try{return JSON.parse(localStorage.getItem('sf-data'))||{}}catch{return{}}}
 function saveData(d){localStorage.setItem('sf-data',JSON.stringify(d))}
 
 function useStore(){
@@ -127,6 +273,7 @@ function useStore(){
     if(!d.streak)d.streak={current:0,best:0,lastDate:null};
     if(!d.sessions)d.sessions=[];
     if(!d.dark)d.dark=window.matchMedia?.('(prefers-color-scheme:dark)').matches||false;
+    if(!d.lastSeenDay)d.lastSeenDay=0;
     return d;
   });
   const setData=useCallback(fn=>{
@@ -138,7 +285,6 @@ function useStore(){
 // ============================================================
 // COMPONENTS
 // ============================================================
-
 function DarkToggle({dark,toggle}){
   return <button onClick={toggle} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
     {dark?<svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd"/></svg>
@@ -146,7 +292,6 @@ function DarkToggle({dark,toggle}){
   </button>;
 }
 
-// --- Landing Page ---
 function Landing({onStart}){
   const pains=["외국인 앞에서 아는 문장도 입에서 안 나온 적 있다","영어 문장을 외워도 다음 날이면 까먹는다","읽으면 이해되는데 직접 말하려면 막힌다"];
   const[checked,setChecked]=useState([]);
@@ -159,7 +304,7 @@ function Landing({onStart}){
     <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-8 max-w-sm">읽으면 아는데 말하면 모르는 문장들.<br/>하루 7분이면 입에서 자동으로 나옵니다.</p>
     <div className="w-full max-w-sm space-y-3 mb-8">
       <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">혹시 이런 경험 있으세요?</p>
-      {pains.map((p,i)=><label key={i} className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${checked.includes(i)?'border-brand-400 bg-brand-50 dark:bg-brand-900/20 dark:border-brand-500':'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
+      {pains.map((p,i)=><label key={i} className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${checked.includes(i)?'border-brand-400 bg-brand-50 dark:bg-brand-900/20 dark:border-brand-500':'border-gray-200 dark:border-gray-700 hover:border-gray-300'}`}>
         <input type="checkbox" checked={checked.includes(i)} onChange={()=>toggle(i)} className="mt-0.5 accent-brand-500"/>
         <span className="text-sm text-gray-700 dark:text-gray-300">{p}</span>
       </label>)}
@@ -167,22 +312,49 @@ function Landing({onStart}){
     <button onClick={onStart} className="w-full max-w-sm py-4 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-base shadow-lg hover:shadow-xl transition-all glow">
       {checked.length>0?'지금 바로 해결해볼게요':'무료로 체험하기'}
     </button>
-    <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">회원가입 없이 바로 시작</p>
+    <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">회원가입 없이 바로 시작 · 매일 7시 새 문장 해금</p>
   </div>;
 }
 
-// --- Home Dashboard ---
-function Home({data,onStartSession,onShowList}){
+function Home({data,setData,sentences,onStartSession,onShowList}){
   const progress=data.progress||{};
   const entries=Object.values(progress);
   const strong=entries.filter(e=>getMemoryStrength(e)==='strong').length;
   const medium=entries.filter(e=>getMemoryStrength(e)==='medium').length;
   const weak=entries.filter(e=>getMemoryStrength(e)==='weak').length;
-  const newCount=SENTENCES.length-entries.length;
-  const reviewDue=entries.filter(e=>!e.nextReview||e.nextReview<=Date.now()).length;
+  const newCount=sentences.length-entries.filter(e=>sentences.some(s=>s.id===parseInt(Object.keys(data.progress||{}).find(k=>data.progress[k]===e)))).length;
+  const reviewDue=entries.filter(e=>e.nextReview&&e.nextReview<=Date.now()).length;
   const totalMastered=entries.filter(e=>(e.level||0)>=5).length;
   const streak=data.streak||{current:0,best:0};
-  const avgSpeed=entries.length?Math.round(entries.reduce((s,e)=>s+(e.avgRecall||10),0)/entries.length*10)/10:0;
+
+  // New sentences today
+  const unlockDay=getUnlockDay();
+  const todayNew=ALL_SENTENCES.filter(s=>s.day===unlockDay&&unlockDay>0);
+  const lastSeenDay=data.lastSeenDay||0;
+  const hasNewToday=unlockDay>lastSeenDay&&todayNew.length>0;
+
+  // Next unlock countdown
+  const[countdown,setCountdown]=useState('');
+  useEffect(()=>{
+    if(hasNewToday&&lastSeenDay<unlockDay){setData(d=>({...d,lastSeenDay:unlockDay}));}
+    const timer=setInterval(()=>{
+      const ms=getNextUnlockMs();
+      if(ms<=0){setCountdown('지금!');return;}
+      const h=Math.floor(ms/3600000);
+      const m=Math.floor((ms%3600000)/60000);
+      setCountdown(`${h}시간 ${m}분`);
+    },60000);
+    const ms=getNextUnlockMs();
+    const h=Math.floor(ms/3600000);const m=Math.floor((ms%3600000)/60000);
+    setCountdown(ms<=0?'지금!':`${h}시간 ${m}분`);
+    return()=>clearInterval(timer);
+  },[]);
+
+  // Level/category stats
+  const lvStats=LEVELS.map(l=>({...l,total:sentences.filter(s=>s.lv===l.id).length,learned:sentences.filter(s=>s.lv===l.id&&progress[s.id]).length}));
+
+  const studiedCount=sentences.filter(s=>progress[s.id]).length;
+  const unstudiedCount=sentences.length-studiedCount;
 
   return <div className="fade-in space-y-5">
     <div className="text-center pt-2">
@@ -191,6 +363,14 @@ function Home({data,onStartSession,onShowList}){
         {streak.current>0?`${streak.current}일 연속 학습 중!`:'오늘 첫 학습을 시작해보세요'}
       </p>
     </div>
+
+    {/* New sentences badge */}
+    {hasNewToday&&<div className="bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-700 rounded-2xl p-4 text-center new-badge">
+      <p className="text-sm font-bold text-brand-600 dark:text-brand-400">🎉 오늘 새 문장 {todayNew.length}개 해금!</p>
+      <div className="flex flex-wrap gap-1 mt-2 justify-center">
+        {todayNew.map(s=><span key={s.id} className="text-[10px] px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-800 text-brand-600 dark:text-brand-300">{CATS[s.cat].emoji} Lv{s.lv}</span>)}
+      </div>
+    </div>}
 
     {/* Session Card */}
     <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
@@ -204,7 +384,7 @@ function Home({data,onStartSession,onShowList}){
           <p className="text-xs text-gray-500 dark:text-gray-400">복습</p>
         </div>
         <div className="flex-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-center">
-          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{Math.min(3,newCount)}</p>
+          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{Math.min(5,unstudiedCount)}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400">새 문장</p>
         </div>
       </div>
@@ -217,26 +397,27 @@ function Home({data,onStartSession,onShowList}){
     <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
       <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">기억 상태</p>
       <div className="flex gap-3">
-        <div className="flex-1 text-center">
-          <div className="text-lg font-bold text-safe">{strong}</div>
-          <div className="text-[10px] text-gray-400">견고</div>
-          <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1"><div className="h-full bg-safe rounded-full" style={{width:`${entries.length?strong/SENTENCES.length*100:0}%`}}/></div>
-        </div>
-        <div className="flex-1 text-center">
-          <div className="text-lg font-bold text-warn">{medium}</div>
-          <div className="text-[10px] text-gray-400">흔들림</div>
-          <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1"><div className="h-full bg-warn rounded-full" style={{width:`${entries.length?medium/SENTENCES.length*100:0}%`}}/></div>
-        </div>
-        <div className="flex-1 text-center">
-          <div className="text-lg font-bold text-danger">{weak}</div>
-          <div className="text-[10px] text-gray-400">위험</div>
-          <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1"><div className="h-full bg-danger rounded-full" style={{width:`${entries.length?weak/SENTENCES.length*100:0}%`}}/></div>
-        </div>
-        <div className="flex-1 text-center">
-          <div className="text-lg font-bold text-gray-300 dark:text-gray-600">{newCount}</div>
-          <div className="text-[10px] text-gray-400">미학습</div>
-          <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1"><div className="h-full bg-gray-300 dark:bg-gray-600 rounded-full" style={{width:`${newCount/SENTENCES.length*100}%`}}/></div>
-        </div>
+        {[['strong','견고','bg-safe',strong],['medium','흔들림','bg-warn',medium],['weak','위험','bg-danger',weak],['new','미학습','bg-gray-300 dark:bg-gray-600',unstudiedCount]].map(([k,l,c,v])=>
+          <div key={k} className="flex-1 text-center">
+            <div className={`text-lg font-bold ${k==='new'?'text-gray-300 dark:text-gray-600':k==='strong'?'text-safe':k==='medium'?'text-warn':'text-danger'}`}>{v}</div>
+            <div className="text-[10px] text-gray-400">{l}</div>
+            <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1"><div className={`h-full ${c} rounded-full`} style={{width:`${sentences.length?v/sentences.length*100:0}%`}}/></div>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Level Progress */}
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">레벨별 진행</p>
+      <div className="space-y-2">
+        {lvStats.filter(l=>l.total>0).map(l=><div key={l.id} className="flex items-center gap-3">
+          <span className="text-sm w-16 shrink-0">{l.emoji} {l.label}</span>
+          <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-full bg-brand-400 rounded-full transition-all" style={{width:`${l.total?l.learned/l.total*100:0}%`}}/>
+          </div>
+          <span className="text-xs text-gray-400 w-10 text-right">{l.learned}/{l.total}</span>
+        </div>)}
       </div>
     </div>
 
@@ -247,48 +428,63 @@ function Home({data,onStartSession,onShowList}){
         <p className="text-[10px] text-gray-400">체화 완료</p>
       </div>
       <div className="bg-white dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700">
-        <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{avgSpeed}s</p>
-        <p className="text-[10px] text-gray-400">평균 회상</p>
-      </div>
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700">
         <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{streak.best}</p>
         <p className="text-[10px] text-gray-400">최장 연속</p>
       </div>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700">
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">다음 해금</p>
+        <p className="text-xs font-bold text-brand-500 mt-1">{countdown}</p>
+      </div>
     </div>
 
-    {/* Sentence List Link */}
     <button onClick={onShowList} className="w-full py-3 text-sm text-brand-500 dark:text-brand-400 hover:underline">
-      내 문장 목록 보기 ({entries.length}/{SENTENCES.length})
+      내 문장 목록 보기 ({studiedCount}/{sentences.length})
     </button>
   </div>;
 }
 
-// --- Sentence List ---
-function SentenceList({data,onBack}){
+function SentenceList({data,sentences,onBack}){
   const progress=data.progress||{};
-  const[filter,setFilter]=useState('all');
-  const filtered=SENTENCES.filter(s=>filter==='all'||s.cat===filter);
+  const[catFilter,setCatFilter]=useState('all');
+  const[lvFilter,setLvFilter]=useState(0);
+  const filtered=sentences.filter(s=>(catFilter==='all'||s.cat===catFilter)&&(lvFilter===0||s.lv===lvFilter));
+  const catCounts=Object.keys(CATS).map(k=>({key:k,...CATS[k],count:sentences.filter(s=>s.cat===k).length})).filter(c=>c.count>0);
+
   return <div className="fade-in">
     <div className="flex items-center gap-3 mb-4">
       <button onClick={onBack} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
       </button>
-      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">내 문장</h2>
+      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">내 문장 ({filtered.length})</h2>
     </div>
-    <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-      {[['all','전체'],['daily','일상'],['business','비즈니스'],['travel','여행']].map(([k,l])=>
-        <button key={k} onClick={()=>setFilter(k)} className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${filter===k?'bg-brand-500 text-white':'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>{l}</button>
-      )}
+
+    {/* Level filter */}
+    <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
+      <button onClick={()=>setLvFilter(0)} className={`px-2.5 py-1 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${lvFilter===0?'bg-brand-500 text-white':'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>전체 Lv</button>
+      {LEVELS.map(l=><button key={l.id} onClick={()=>setLvFilter(l.id)} className={`px-2.5 py-1 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${lvFilter===l.id?'bg-brand-500 text-white':'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>{l.emoji} {l.label}</button>)}
     </div>
+
+    {/* Category filter */}
+    <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
+      <button onClick={()=>setCatFilter('all')} className={`px-2.5 py-1 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${catFilter==='all'?'bg-brand-500 text-white':'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>전체</button>
+      {catCounts.map(c=><button key={c.key} onClick={()=>setCatFilter(c.key)} className={`px-2.5 py-1 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${catFilter===c.key?'bg-brand-500 text-white':'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>{c.emoji} {c.label.split(' ')[0]}</button>)}
+    </div>
+
     <div className="space-y-2">
       {filtered.map(s=>{
         const p=progress[s.id]||{};
         const str=getMemoryStrength(p);
         const lvl=p.level||0;
         const colors={strong:'bg-safe',medium:'bg-warn',weak:'bg-danger',new:'bg-gray-300 dark:bg-gray-600'};
-        return <div key={s.id} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 slide-up">
+        const isNew=s.day===getUnlockDay()&&getUnlockDay()>0;
+        return <div key={s.id} className={`bg-white dark:bg-gray-800 rounded-xl p-4 border ${isNew?'border-brand-300 dark:border-brand-600':'border-gray-100 dark:border-gray-700'} slide-up`}>
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">Lv{s.lv}</span>
+                <span className="text-[10px] text-gray-400">{CATS[s.cat].emoji}</span>
+                {isNew&&<span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-900 text-brand-500 font-bold new-badge">NEW</span>}
+              </div>
               <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{s.en}</p>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{s.ko}</p>
             </div>
@@ -303,20 +499,17 @@ function SentenceList({data,onBack}){
   </div>;
 }
 
-// --- Learning Session ---
-function LearningSession({data,setData,onFinish}){
+function LearningSession({data,setData,sentences,onFinish}){
   const progress=data.progress||{};
-
-  // Build queue: review due + new sentences
   const queue=useMemo(()=>{
-    const review=SENTENCES.filter(s=>{const p=progress[s.id];return p&&p.nextReview&&p.nextReview<=Date.now();});
-    const newS=SENTENCES.filter(s=>!progress[s.id]);
-    const items=[...shuffle(review),...shuffle(newS).slice(0,3)];
-    return items.length>0?items:shuffle(SENTENCES).slice(0,5);
+    const review=sentences.filter(s=>{const p=progress[s.id];return p&&p.nextReview&&p.nextReview<=Date.now();});
+    const newS=sentences.filter(s=>!progress[s.id]);
+    const items=[...shuffle(review),...shuffle(newS).slice(0,5)];
+    return items.length>0?items:shuffle(sentences).slice(0,5);
   },[]);
 
   const[idx,setIdx]=useState(0);
-  const[step,setStep]=useState(0); // 0:expose, 1:chunk, 2:fill, 3:fullRecall, 4:result
+  const[step,setStep]=useState(0);
   const[hintLevel,setHintLevel]=useState(0);
   const[answer,setAnswer]=useState('');
   const[fillAnswers,setFillAnswers]=useState({});
@@ -332,8 +525,6 @@ function LearningSession({data,setData,onFinish}){
 
   const totalSteps=queue.length;
   const progressPct=((idx)/totalSteps)*100;
-
-  // Generate blanks for fill step
   const words=sentence.en.split(' ');
   const blankIndices=useMemo(()=>{
     const important=[];
@@ -346,25 +537,20 @@ function LearningSession({data,setData,onFinish}){
 
   const handleFillCheck=()=>{
     const allCorrect=blankIndices.every(bi=>{
-      const userWord=(fillAnswers[bi]||'').trim().toLowerCase().replace(/[^a-z']/g,'');
-      const correctWord=words[bi].toLowerCase().replace(/[^a-z']/g,'');
-      return userWord===correctWord;
+      const u=(fillAnswers[bi]||'').trim().toLowerCase().replace(/[^a-z']/g,'');
+      const c=words[bi].toLowerCase().replace(/[^a-z']/g,'');
+      return u===c;
     });
-    if(allCorrect){
-      setStep(3);setStartTime(Date.now());setAnswer('');setHintLevel(0);
-    }else{
-      setCorrect(false);
-      setTimeout(()=>setCorrect(null),600);
-    }
+    if(allCorrect){setStep(3);setStartTime(Date.now());setAnswer('');setHintLevel(0);}
+    else{setCorrect(false);setTimeout(()=>setCorrect(null),600);}
   };
 
   const handleFullRecallCheck=()=>{
-    const userClean=answer.trim().toLowerCase().replace(/[^a-z' ]/g,'').replace(/\s+/g,' ');
-    const correctClean=sentence.en.toLowerCase().replace(/[^a-z' ]/g,'').replace(/\s+/g,' ');
+    const uClean=answer.trim().toLowerCase().replace(/[^a-z' ]/g,'').replace(/\s+/g,' ');
+    const cClean=sentence.en.toLowerCase().replace(/[^a-z' ]/g,'').replace(/\s+/g,' ');
     const elapsed=(Date.now()-startTime)/1000;
-    if(userClean===correctClean){
+    if(uClean===cClean){
       setRecallTime(elapsed);setCorrect(true);setStep(4);
-      // Update progress
       const prev=progress[sentence.id]||{ef:2.5,interval:1,reps:0,recallTimes:[],level:0};
       const quality=hintLevel===0?5:hintLevel===1?4:3;
       const updated=sm2(prev,quality);
@@ -372,18 +558,11 @@ function LearningSession({data,setData,onFinish}){
       const newLevel=clamp((prev.level||0)+1,0,5);
       setData(d=>({...d,progress:{...d.progress,[sentence.id]:{...updated,lastStudied:Date.now(),recallTimes:newRecalls,avgRecall:Math.round(newRecalls.reduce((a,b)=>a+b,0)/newRecalls.length*10)/10,level:newLevel,hintsUsed:(prev.hintsUsed||0)+hintLevel}}}));
       setSessionResults(r=>[...r,{id:sentence.id,correct:true,time:elapsed,hints:hintLevel}]);
-    }else{
-      setCorrect(false);
-      setTimeout(()=>setCorrect(null),600);
-    }
+    }else{setCorrect(false);setTimeout(()=>setCorrect(null),600);}
   };
 
   const showHint=()=>setHintLevel(h=>Math.min(3,h+1));
-
-  const nextSentence=()=>{
-    setIdx(i=>i+1);setStep(0);setHintLevel(0);setAnswer('');setFillAnswers({});setCorrect(null);setShowTip(false);setStartTime(Date.now());
-  };
-
+  const nextSentence=()=>{setIdx(i=>i+1);setStep(0);setHintLevel(0);setAnswer('');setFillAnswers({});setCorrect(null);setShowTip(false);setStartTime(Date.now());};
   const skipWithPenalty=()=>{
     const prev=progress[sentence.id]||{ef:2.5,interval:1,reps:0,recallTimes:[],level:0};
     const updated=sm2(prev,1);
@@ -393,9 +572,9 @@ function LearningSession({data,setData,onFinish}){
   };
 
   const catInfo=CATS[sentence.cat];
+  const lvInfo=LEVELS[sentence.lv-1];
 
   return <div className="fade-in">
-    {/* Progress bar */}
     <div className="flex items-center gap-3 mb-6">
       <button onClick={onFinish} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
@@ -407,29 +586,26 @@ function LearningSession({data,setData,onFinish}){
     </div>
 
     <div className="flex items-center gap-2 mb-4">
-      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">{catInfo.emoji} {catInfo.label}</span>
+      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">{lvInfo.emoji} Lv{sentence.lv}</span>
+      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">{catInfo.emoji} {catInfo.label.split(' ')[0]}</span>
       <span className="text-xs text-gray-300 dark:text-gray-600">
         {['문장 보기','청크 분해','빈칸 채우기','완전 회상','결과'][step]}
       </span>
     </div>
 
-    {/* Step 0: Expose */}
     {step===0&&<div className="pop">
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-4">
         <p className="text-xl font-bold text-gray-900 dark:text-white leading-relaxed mb-3">{sentence.en}</p>
         <p className="text-sm text-gray-500 dark:text-gray-400">{sentence.ko}</p>
       </div>
-      <button onClick={()=>{
-        if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(sentence.en);u.lang='en-US';u.rate=0.85;speechSynthesis.speak(u);}
-      }} className="w-full py-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium mb-3 flex items-center justify-center gap-2">
+      <button onClick={()=>{if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(sentence.en);u.lang='en-US';u.rate=0.85;speechSynthesis.speak(u);}}} className="w-full py-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium mb-3 flex items-center justify-center gap-2">
         <span>🔊</span> 듣기
       </button>
       <button onClick={()=>setStep(1)} className="w-full py-3.5 rounded-xl bg-brand-500 text-white font-bold">다음 →</button>
     </div>}
 
-    {/* Step 1: Chunking */}
     {step===1&&<div className="pop">
-      <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold mb-3">청크 분해</p>
+      <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-3">청크 분해</p>
       <div className="space-y-2 mb-6">
         {sentence.chunks.map(([en,ko],i)=><div key={i} className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 slide-up" style={{animationDelay:`${i*100}ms`}}>
           <span className="text-base font-semibold text-brand-600 dark:text-brand-400">{en}</span>
@@ -440,16 +616,14 @@ function LearningSession({data,setData,onFinish}){
       <button onClick={()=>{setStep(2);setStartTime(Date.now());}} className="w-full py-3.5 rounded-xl bg-brand-500 text-white font-bold">빈칸 채우기 →</button>
     </div>}
 
-    {/* Step 2: Fill in blanks */}
     {step===2&&<div className={`pop ${correct===false?'shake':''}`}>
-      <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold mb-3">빈칸을 채우세요</p>
+      <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-3">빈칸을 채우세요</p>
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 mb-4">
         <div className="flex flex-wrap gap-1.5 items-center">
           {words.map((w,i)=>blankIndices.includes(i)?
             <input key={i} type="text" value={fillAnswers[i]||''} onChange={e=>setFillAnswers({...fillAnswers,[i]:e.target.value})}
               placeholder={hintLevel>=1?w[0]+'___':'____'}
-              className="w-24 border-b-2 border-brand-300 dark:border-brand-600 bg-transparent text-center text-base font-semibold text-gray-900 dark:text-white px-1 py-0.5 focus:border-brand-500"
-              autoComplete="off" spellCheck="false"/>
+              className="w-24 border-b-2 border-brand-300 dark:border-brand-600 bg-transparent text-center text-base font-semibold text-gray-900 dark:text-white px-1 py-0.5 focus:border-brand-500" autoComplete="off" spellCheck="false"/>
             :<span key={i} className="text-base text-gray-800 dark:text-gray-200">{w}</span>
           )}
         </div>
@@ -459,20 +633,17 @@ function LearningSession({data,setData,onFinish}){
         {hintLevel>=3&&<p className="mt-2 text-sm text-brand-500 font-medium">{sentence.en}</p>}
       </div>
       <div className="flex gap-2">
-        <button onClick={showHint} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm font-medium">
-          💡 힌트 ({hintLevel}/3)
-        </button>
+        <button onClick={showHint} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm font-medium">💡 힌트 ({hintLevel}/3)</button>
         <button onClick={handleFillCheck} className="flex-1 py-3 rounded-xl bg-brand-500 text-white font-bold text-sm">확인</button>
       </div>
     </div>}
 
-    {/* Step 3: Full Recall */}
     {step===3&&<div className={`pop ${correct===false?'shake':''}`}>
-      <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold mb-3">전체 문장을 입력하세요</p>
+      <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-3">전체 문장을 입력하세요</p>
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 mb-4">
         <p className="text-sm text-gray-400 dark:text-gray-500 mb-3">{sentence.ko}</p>
         <textarea ref={inputRef} value={answer} onChange={e=>setAnswer(e.target.value)} rows={3}
-          className="w-full bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-base text-gray-900 dark:text-white resize-none border border-gray-200 dark:border-gray-600 focus:border-brand-400 dark:focus:border-brand-500"
+          className="w-full bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-base text-gray-900 dark:text-white resize-none border border-gray-200 dark:border-gray-600 focus:border-brand-400"
           placeholder="영어 문장을 입력하세요..." autoComplete="off" spellCheck="false"
           onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleFullRecallCheck();}}}/>
         {hintLevel>=1&&<p className="text-xs text-gray-400 mt-2">첫 글자: {sentence.en.split(' ').map(w=>w[0]).join(' ')}</p>}
@@ -480,15 +651,12 @@ function LearningSession({data,setData,onFinish}){
         {hintLevel>=3&&<p className="mt-2 text-sm text-brand-500 font-medium">{sentence.en}</p>}
       </div>
       <div className="flex gap-2">
-        <button onClick={showHint} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm font-medium">
-          💡 힌트 ({hintLevel}/3)
-        </button>
+        <button onClick={showHint} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm font-medium">💡 힌트 ({hintLevel}/3)</button>
         <button onClick={handleFullRecallCheck} className="flex-1 py-3 rounded-xl bg-brand-500 text-white font-bold text-sm">확인</button>
       </div>
       <button onClick={skipWithPenalty} className="w-full mt-2 py-2 text-xs text-gray-400 hover:text-gray-500">건너뛰기</button>
     </div>}
 
-    {/* Step 4: Result */}
     {step===4&&<div className="pop text-center">
       <div className="text-4xl mb-3">✅</div>
       <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">정확해요!</p>
@@ -518,7 +686,6 @@ function LearningSession({data,setData,onFinish}){
   </div>;
 }
 
-// --- Session Complete ---
 function SessionComplete({results,data,onFinish}){
   const correctCount=results.filter(r=>r.correct).length;
   const avgTime=results.filter(r=>r.correct).length?
@@ -550,13 +717,12 @@ function App(){
   const[data,setData]=useStore();
   const[page,setPage]=useState(data.sessions?.length>0?'home':'landing');
   const dark=data.dark;
+  const sentences=useMemo(()=>getUnlockedSentences(),[]);
 
   useEffect(()=>{document.documentElement.classList.toggle('dark',dark);},[dark]);
-
   const toggleDark=()=>setData(d=>({...d,dark:!d.dark}));
 
   const startSession=()=>{
-    // Update streak
     const today=new Date().toDateString();
     const streak=data.streak||{current:0,best:0,lastDate:null};
     let newStreak={...streak};
@@ -582,6 +748,7 @@ function App(){
         <div className="flex items-center gap-2 cursor-pointer" onClick={()=>setPage('home')}>
           <span className="text-xl">🧠</span>
           <span className="text-base font-bold text-gray-800 dark:text-gray-100">SentenceFlow</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-100 dark:bg-brand-900 text-brand-500 font-medium">Day {getUnlockDay()}</span>
         </div>
         <DarkToggle dark={dark} toggle={toggleDark}/>
       </div>
@@ -589,13 +756,13 @@ function App(){
 
     <main className="max-w-lg mx-auto px-4 py-6">
       {page==='landing'&&<Landing onStart={()=>{setPage('home');startSession();}}/>}
-      {page==='home'&&<Home data={data} onStartSession={startSession} onShowList={()=>setPage('list')}/>}
-      {page==='list'&&<SentenceList data={data} onBack={()=>setPage('home')}/>}
-      {page==='learning'&&<LearningSession data={data} setData={setData} onFinish={finishSession}/>}
+      {page==='home'&&<Home data={data} setData={setData} sentences={sentences} onStartSession={startSession} onShowList={()=>setPage('list')}/>}
+      {page==='list'&&<SentenceList data={data} sentences={sentences} onBack={()=>setPage('home')}/>}
+      {page==='learning'&&<LearningSession data={data} setData={setData} sentences={sentences} onFinish={finishSession}/>}
     </main>
 
     {page!=='landing'&&page!=='learning'&&<footer className="text-center py-6 text-xs text-gray-300 dark:text-gray-700">
-      SentenceFlow — 하루 7분, 영어가 입에서 나옵니다
+      SentenceFlow — 매일 오전 7시, 새로운 문장이 해금됩니다
     </footer>}
   </div>;
 }
