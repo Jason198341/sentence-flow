@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentenceFlow - 외웠는데 입에서 안 나오는 영어, 이제 끝내세요</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' },
+            safe: '#22c55e', warn: '#f59e0b', danger: '#ef4444',
+          },
+          fontFamily: { sans: ['"Noto Sans KR"','system-ui','sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body{font-family:'Noto Sans KR',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+    *{box-sizing:border-box}
+    .fade-in{animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .pop{animation:pop .3s cubic-bezier(.175,.885,.32,1.275)}
+    @keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+    .shake{animation:shake .4s ease}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+    .slide-up{animation:slideUp .25s ease-out}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .glow{box-shadow:0 0 20px rgba(99,102,241,.3)}
+    .dark .glow{box-shadow:0 0 20px rgba(129,140,248,.2)}
+    input:focus,textarea:focus,button:focus{outline:none}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#c7d2fe;border-radius:2px}
+    .dark ::-webkit-scrollbar-thumb{background:#4338ca}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback,useMemo}=React;
+
+// ============================================================
+// DATA: 30 sentences (10 per category) with chunks & teaching
+// ============================================================
+const SENTENCES=[
+  // === Daily ===
+  {id:1,cat:'daily',en:"I've been looking forward to meeting you.",ko:"만나 뵙기를 기대하고 있었습니다.",chunks:[["I've been","나는 ~해왔다"],["looking forward to","기대하다"],["meeting you","만나는 것을"]],tip:"비즈니스 첫인사. 'look forward to' 뒤에는 항상 -ing(동명사)가 옵니다.",difficulty:2},
+  {id:2,cat:'daily',en:"Could you do me a favor?",ko:"부탁 하나 해도 될까요?",chunks:[["Could you","~해주실 수 있나요"],["do me","나에게 해주다"],["a favor","부탁 하나"]],tip:"정중한 부탁 표현. 'Can you' 보다 격식 있습니다.",difficulty:1},
+  {id:3,cat:'daily',en:"I'm sorry, but something came up.",ko:"죄송한데, 갑자기 일이 생겼어요.",chunks:[["I'm sorry, but","죄송하지만"],["something","무언가가"],["came up","생겼다/발생했다"]],tip:"약속 취소 시 자연스러운 표현. 'come up'은 예상치 못한 일이 생길 때 씁니다.",difficulty:1},
+  {id:4,cat:'daily',en:"It totally slipped my mind.",ko:"완전히 깜빡했어요.",chunks:[["It","그것이"],["totally slipped","완전히 빠져나갔다"],["my mind","내 마음에서"]],tip:"까먹었을 때 자연스러운 표현. 'I forgot' 보다 원어민스럽습니다.",difficulty:2},
+  {id:5,cat:'daily',en:"I'll keep that in mind.",ko:"그거 기억해 둘게요.",chunks:[["I'll keep","나는 유지할게"],["that","그것을"],["in mind","마음속에"]],tip:"조언을 받았을 때 감사하며 쓰는 표현.",difficulty:1},
+  {id:6,cat:'daily',en:"Let me get back to you on that.",ko:"그건 확인하고 다시 알려드릴게요.",chunks:[["Let me","제가 ~할게요"],["get back to you","다시 연락하다"],["on that","그것에 대해"]],tip:"즉답이 어려울 때 시간을 버는 핵심 표현.",difficulty:2},
+  {id:7,cat:'daily',en:"That's not what I meant.",ko:"제가 말하려던 건 그게 아니에요.",chunks:[["That's not","그건 ~이 아니다"],["what I meant","내가 의미했던 것"]],tip:"오해가 생겼을 때 바로잡는 표현.",difficulty:2},
+  {id:8,cat:'daily',en:"I'm not really in the mood for that.",ko:"지금 그럴 기분이 아니에요.",chunks:[["I'm not really","사실 ~이 아니에요"],["in the mood","기분이 나는"],["for that","그것에 대해"]],tip:"부드럽게 거절할 때. 직접적인 'No' 보다 자연스럽습니다.",difficulty:2},
+  {id:9,cat:'daily',en:"It's on the tip of my tongue.",ko:"입 끝에서 맴도는데 생각이 안 나요.",chunks:[["It's on","~에 있다"],["the tip of","끝에"],["my tongue","내 혀의"]],tip:"뭔가 떠오를 듯 안 떠오를 때. 영어 학습자가 자주 겪는 바로 그 순간!",difficulty:2},
+  {id:10,cat:'daily',en:"I couldn't agree with you more.",ko:"완전히 동의합니다.",chunks:[["I couldn't","나는 ~할 수 없다"],["agree with you","당신에게 동의하다"],["more","더 이상"]],tip:"이중부정 강조 표현. '더 이상 동의할 수 없을 정도로 동의한다' = 완전 동의.",difficulty:3},
+  // === Business ===
+  {id:11,cat:'business',en:"Let's circle back to this later.",ko:"이건 나중에 다시 논의합시다.",chunks:[["Let's","~합시다"],["circle back","다시 돌아오다"],["to this later","이것에 나중에"]],tip:"회의 중 주제를 미룰 때. 미국 기업문화 필수 표현.",difficulty:2},
+  {id:12,cat:'business',en:"I'd like to touch base with you.",ko:"간단히 상황 공유하고 싶습니다.",chunks:[["I'd like to","~하고 싶습니다"],["touch base","연락하다/상황 공유하다"],["with you","당신과"]],tip:"야구에서 유래. 짧은 미팅/체크인을 요청할 때.",difficulty:2},
+  {id:13,cat:'business',en:"We need to get everyone on the same page.",ko:"모두가 같은 이해를 하고 있어야 합니다.",chunks:[["We need to","우리는 ~해야 한다"],["get everyone","모두를 ~하게 하다"],["on the same page","같은 페이지에"]],tip:"팀 정렬이 필요할 때. 프로젝트 킥오프에서 자주 사용.",difficulty:3},
+  {id:14,cat:'business',en:"Could you walk me through the process?",ko:"그 프로세스를 설명해 주시겠어요?",chunks:[["Could you","~해주시겠어요"],["walk me through","단계별로 설명하다"],["the process","그 과정을"]],tip:"'explain'보다 자연스러운 비즈니스 표현. 단계별 설명을 요청할 때.",difficulty:2},
+  {id:15,cat:'business',en:"I'll keep you posted on any updates.",ko:"업데이트가 있으면 계속 알려드리겠습니다.",chunks:[["I'll keep","~를 유지하겠다"],["you posted","당신에게 알림을"],["on any updates","어떤 업데이트든"]],tip:"진행 상황을 공유하겠다는 약속. 이메일 마무리에 자주 사용.",difficulty:2},
+  {id:16,cat:'business',en:"Let me play devil's advocate for a moment.",ko:"잠시 반대 입장에서 말해볼게요.",chunks:[["Let me play","제가 ~역할을 할게요"],["devil's advocate","악마의 옹호자"],["for a moment","잠시"]],tip:"회의에서 의도적으로 반론을 제기할 때. 비판이 아닌 건설적 토론 도구.",difficulty:3},
+  {id:17,cat:'business',en:"We're running behind schedule.",ko:"일정보다 뒤처지고 있습니다.",chunks:[["We're running","우리는 ~하고 있다"],["behind","뒤에"],["schedule","일정"]],tip:"프로젝트 지연을 알릴 때. 'late'보다 전문적인 표현.",difficulty:2},
+  {id:18,cat:'business',en:"That's a bit outside the scope of this meeting.",ko:"그건 이 회의의 범위를 벗어납니다.",chunks:[["That's a bit","그건 약간"],["outside the scope","범위 밖의"],["of this meeting","이 회의의"]],tip:"회의가 산으로 갈 때 주제를 되돌리는 표현.",difficulty:3},
+  {id:19,cat:'business',en:"I think we should take a step back and look at the bigger picture.",ko:"한 발 물러서서 큰 그림을 봐야 할 것 같습니다.",chunks:[["I think we should","~해야 할 것 같습니다"],["take a step back","한 발 물러서다"],["and look at the bigger picture","그리고 큰 그림을 보다"]],tip:"세부사항에 매몰됐을 때. 전략적 시각을 환기시키는 표현.",difficulty:3},
+  {id:20,cat:'business',en:"Let's table this discussion for now.",ko:"이 논의는 일단 보류합시다.",chunks:[["Let's table","~를 보류합시다"],["this discussion","이 논의를"],["for now","지금은"]],tip:"미국식 영어에서 'table'은 '보류하다'. 영국식에서는 반대로 '제안하다'!",difficulty:2},
+  // === Travel ===
+  {id:21,cat:'travel',en:"Is there anywhere you'd recommend around here?",ko:"이 근처에 추천해주실 곳 있나요?",chunks:[["Is there anywhere","어딘가 있나요"],["you'd recommend","당신이 추천할"],["around here","이 근처에"]],tip:"현지인에게 맛집/명소를 물을 때 자연스러운 표현.",difficulty:2},
+  {id:22,cat:'travel',en:"I'd like to check in, please.",ko:"체크인하고 싶습니다.",chunks:[["I'd like to","~하고 싶습니다"],["check in","체크인하다"],["please","부탁드립니다"]],tip:"호텔/공항에서 필수. 'I want to' 보다 정중합니다.",difficulty:1},
+  {id:23,cat:'travel',en:"Could you take a picture of us?",ko:"저희 사진 좀 찍어주시겠어요?",chunks:[["Could you","~해주시겠어요"],["take a picture","사진을 찍다"],["of us","저희의"]],tip:"관광지에서 자주 쓰는 표현. 'photo'로 바꿔써도 됩니다.",difficulty:1},
+  {id:24,cat:'travel',en:"How long does it take to get there?",ko:"거기까지 얼마나 걸리나요?",chunks:[["How long","얼마나 오래"],["does it take","걸리나요"],["to get there","거기에 도착하는 데"]],tip:"교통수단/이동시간을 물을 때 필수 표현.",difficulty:1},
+  {id:25,cat:'travel',en:"I'm allergic to peanuts. Does this contain any?",ko:"저는 땅콩 알레르기가 있어요. 이거 들어있나요?",chunks:[["I'm allergic to","~에 알레르기가 있다"],["peanuts","땅콩"],["Does this contain any","이것에 들어있나요"]],tip:"식당에서 안전을 위한 필수 표현. 'peanuts'를 다른 알레르기 원인으로 교체 가능.",difficulty:2},
+  {id:26,cat:'travel',en:"We're a party of four. Do you have a table available?",ko:"4명인데요, 자리 있나요?",chunks:[["We're a party of four","우리는 4인 일행입니다"],["Do you have","~가 있나요"],["a table available","이용 가능한 테이블"]],tip:"레스토랑 예약 없이 갈 때. 'party'는 여기서 '일행'이라는 뜻.",difficulty:2},
+  {id:27,cat:'travel',en:"Excuse me, I think you gave me the wrong change.",ko:"실례합니다, 거스름돈이 잘못된 것 같아요.",chunks:[["Excuse me","실례합니다"],["I think you gave me","~를 주신 것 같아요"],["the wrong change","잘못된 거스름돈"]],tip:"공손하게 실수를 지적할 때. 'I think'을 넣으면 부드러워집니다.",difficulty:2},
+  {id:28,cat:'travel',en:"Is this seat taken?",ko:"이 자리 비어있나요?",chunks:[["Is this seat","이 좌석이"],["taken","차지된/사용 중인"]],tip:"카페, 기차, 공항 등 어디서나 쓸 수 있는 짧고 강력한 표현.",difficulty:1},
+  {id:29,cat:'travel',en:"I got lost. Could you point me in the right direction?",ko:"길을 잃었어요. 방향을 알려주시겠어요?",chunks:[["I got lost","길을 잃었다"],["Could you point me","저를 가리켜 주시겠어요"],["in the right direction","올바른 방향으로"]],tip:"GPS가 안 될 때 현지인에게 도움 요청. 'point'는 방향을 가리키다.",difficulty:2},
+  {id:30,cat:'travel',en:"What time is the last train back?",ko:"돌아가는 마지막 기차가 몇 시인가요?",chunks:[["What time is","몇 시인가요"],["the last train","마지막 기차가"],["back","돌아가는"]],tip:"여행지에서 교통편 확인 필수. 'train'을 'bus/ferry'로 교체 가능.",difficulty:1},
+];
+
+const CATS={daily:{label:'일상',emoji:'💬',color:'indigo'},business:{label:'비즈니스',emoji:'💼',color:'emerald'},travel:{label:'여행',emoji:'✈️',color:'amber'}};
+
+// ============================================================
+// SM-2 Spaced Repetition helpers
+// ============================================================
+function sm2(item,quality){
+  let {ef=2.5,interval=1,reps=0}=item;
+  if(quality>=3){reps++;if(reps===1)interval=1;else if(reps===2)interval=3;else interval=Math.round(interval*ef);ef=Math.max(1.3,ef+(.1-(.08+(5-quality)*(.02+(5-quality)*.015))));}
+  else{reps=0;interval=1;}
+  return{ef,interval,reps,nextReview:Date.now()+interval*86400000};
+}
+
+function getMemoryStrength(item){
+  if(!item.lastStudied)return 'new';
+  const daysSince=(Date.now()-item.lastStudied)/86400000;
+  const ratio=daysSince/(item.interval||1);
+  if(ratio<.5)return 'strong';if(ratio<1)return 'medium';return 'weak';
+}
+
+// ============================================================
+// Utility
+// ============================================================
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const clamp=(n,lo,hi)=>Math.min(hi,Math.max(lo,n));
+const shuffle=a=>[...a].sort(()=>Math.random()-.5);
+
+// ============================================================
+// STORAGE
+// ============================================================
+function loadData(){
+  try{return JSON.parse(localStorage.getItem('sf-data'))||{}}catch{return{}}
+}
+function saveData(d){localStorage.setItem('sf-data',JSON.stringify(d))}
+
+function useStore(){
+  const[data,setDataRaw]=useState(()=>{
+    const d=loadData();
+    if(!d.progress)d.progress={};
+    if(!d.streak)d.streak={current:0,best:0,lastDate:null};
+    if(!d.sessions)d.sessions=[];
+    if(!d.dark)d.dark=window.matchMedia?.('(prefers-color-scheme:dark)').matches||false;
+    return d;
+  });
+  const setData=useCallback(fn=>{
+    setDataRaw(prev=>{const next=typeof fn==='function'?fn(prev):{...prev,...fn};saveData(next);return next;});
+  },[]);
+  return[data,setData];
+}
+
+// ============================================================
+// COMPONENTS
+// ============================================================
+
+function DarkToggle({dark,toggle}){
+  return <button onClick={toggle} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+    {dark?<svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd"/></svg>
+    :<svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>}
+  </button>;
+}
+
+// --- Landing Page ---
+function Landing({onStart}){
+  const pains=["외국인 앞에서 아는 문장도 입에서 안 나온 적 있다","영어 문장을 외워도 다음 날이면 까먹는다","읽으면 이해되는데 직접 말하려면 막힌다"];
+  const[checked,setChecked]=useState([]);
+  const toggle=i=>setChecked(p=>p.includes(i)?p.filter(x=>x!==i):[...p,i]);
+  return <div className="min-h-screen flex flex-col items-center justify-center px-6 fade-in">
+    <div className="text-5xl mb-4">🧠</div>
+    <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white text-center leading-tight mb-3">
+      외웠는데 입에서<br/>안 나오는 영어,<br/><span className="text-brand-500">이제 끝내세요.</span>
+    </h1>
+    <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-8 max-w-sm">읽으면 아는데 말하면 모르는 문장들.<br/>하루 7분이면 입에서 자동으로 나옵니다.</p>
+    <div className="w-full max-w-sm space-y-3 mb-8">
+      <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">혹시 이런 경험 있으세요?</p>
+      {pains.map((p,i)=><label key={i} className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${checked.includes(i)?'border-brand-400 bg-brand-50 dark:bg-brand-900/20 dark:border-brand-500':'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}`}>
+        <input type="checkbox" checked={checked.includes(i)} onChange={()=>toggle(i)} className="mt-0.5 accent-brand-500"/>
+        <span className="text-sm text-gray-700 dark:text-gray-300">{p}</span>
+      </label>)}
+    </div>
+    <button onClick={onStart} className="w-full max-w-sm py-4 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-base shadow-lg hover:shadow-xl transition-all glow">
+      {checked.length>0?'지금 바로 해결해볼게요':'무료로 체험하기'}
+    </button>
+    <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">회원가입 없이 바로 시작</p>
+  </div>;
+}
+
+// --- Home Dashboard ---
+function Home({data,onStartSession,onShowList}){
+  const progress=data.progress||{};
+  const entries=Object.values(progress);
+  const strong=entries.filter(e=>getMemoryStrength(e)==='strong').length;
+  const medium=entries.filter(e=>getMemoryStrength(e)==='medium').length;
+  const weak=entries.filter(e=>getMemoryStrength(e)==='weak').length;
+  const newCount=SENTENCES.length-entries.length;
+  const reviewDue=entries.filter(e=>!e.nextReview||e.nextReview<=Date.now()).length;
+  const totalMastered=entries.filter(e=>(e.level||0)>=5).length;
+  const streak=data.streak||{current:0,best:0};
+  const avgSpeed=entries.length?Math.round(entries.reduce((s,e)=>s+(e.avgRecall||10),0)/entries.length*10)/10:0;
+
+  return <div className="fade-in space-y-5">
+    <div className="text-center pt-2">
+      <p className="text-sm text-gray-500 dark:text-gray-400">좋은 하루에요! 🎯</p>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+        {streak.current>0?`${streak.current}일 연속 학습 중!`:'오늘 첫 학습을 시작해보세요'}
+      </p>
+    </div>
+
+    {/* Session Card */}
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="flex justify-between items-center mb-4">
+        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">오늘의 학습</span>
+        <span className="text-xs text-gray-400 dark:text-gray-500">약 {Math.max(3,Math.ceil((reviewDue+3)*0.6))}분 소요</span>
+      </div>
+      <div className="flex gap-4 mb-5">
+        <div className="flex-1 bg-brand-50 dark:bg-brand-900/20 rounded-xl p-3 text-center">
+          <p className="text-2xl font-bold text-brand-600 dark:text-brand-400">{reviewDue}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">복습</p>
+        </div>
+        <div className="flex-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-center">
+          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{Math.min(3,newCount)}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">새 문장</p>
+        </div>
+      </div>
+      <button onClick={onStartSession} className="w-full py-3.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold transition-all shadow glow">
+        바로 시작
+      </button>
+    </div>
+
+    {/* Memory Strength */}
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">기억 상태</p>
+      <div className="flex gap-3">
+        <div className="flex-1 text-center">
+          <div className="text-lg font-bold text-safe">{strong}</div>
+          <div className="text-[10px] text-gray-400">견고</div>
+          <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1"><div className="h-full bg-safe rounded-full" style={{width:`${entries.length?strong/SENTENCES.length*100:0}%`}}/></div>
+        </div>
+        <div className="flex-1 text-center">
+          <div className="text-lg font-bold text-warn">{medium}</div>
+          <div className="text-[10px] text-gray-400">흔들림</div>
+          <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1"><div className="h-full bg-warn rounded-full" style={{width:`${entries.length?medium/SENTENCES.length*100:0}%`}}/></div>
+        </div>
+        <div className="flex-1 text-center">
+          <div className="text-lg font-bold text-danger">{weak}</div>
+          <div className="text-[10px] text-gray-400">위험</div>
+          <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1"><div className="h-full bg-danger rounded-full" style={{width:`${entries.length?weak/SENTENCES.length*100:0}%`}}/></div>
+        </div>
+        <div className="flex-1 text-center">
+          <div className="text-lg font-bold text-gray-300 dark:text-gray-600">{newCount}</div>
+          <div className="text-[10px] text-gray-400">미학습</div>
+          <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1"><div className="h-full bg-gray-300 dark:bg-gray-600 rounded-full" style={{width:`${newCount/SENTENCES.length*100}%`}}/></div>
+        </div>
+      </div>
+    </div>
+
+    {/* Stats */}
+    <div className="grid grid-cols-3 gap-3">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700">
+        <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{totalMastered}</p>
+        <p className="text-[10px] text-gray-400">체화 완료</p>
+      </div>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700">
+        <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{avgSpeed}s</p>
+        <p className="text-[10px] text-gray-400">평균 회상</p>
+      </div>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700">
+        <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{streak.best}</p>
+        <p className="text-[10px] text-gray-400">최장 연속</p>
+      </div>
+    </div>
+
+    {/* Sentence List Link */}
+    <button onClick={onShowList} className="w-full py-3 text-sm text-brand-500 dark:text-brand-400 hover:underline">
+      내 문장 목록 보기 ({entries.length}/{SENTENCES.length})
+    </button>
+  </div>;
+}
+
+// --- Sentence List ---
+function SentenceList({data,onBack}){
+  const progress=data.progress||{};
+  const[filter,setFilter]=useState('all');
+  const filtered=SENTENCES.filter(s=>filter==='all'||s.cat===filter);
+  return <div className="fade-in">
+    <div className="flex items-center gap-3 mb-4">
+      <button onClick={onBack} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">내 문장</h2>
+    </div>
+    <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+      {[['all','전체'],['daily','일상'],['business','비즈니스'],['travel','여행']].map(([k,l])=>
+        <button key={k} onClick={()=>setFilter(k)} className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${filter===k?'bg-brand-500 text-white':'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>{l}</button>
+      )}
+    </div>
+    <div className="space-y-2">
+      {filtered.map(s=>{
+        const p=progress[s.id]||{};
+        const str=getMemoryStrength(p);
+        const lvl=p.level||0;
+        const colors={strong:'bg-safe',medium:'bg-warn',weak:'bg-danger',new:'bg-gray-300 dark:bg-gray-600'};
+        return <div key={s.id} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 slide-up">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{s.en}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{s.ko}</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="flex gap-0.5">{[1,2,3,4,5].map(i=><div key={i} className={`w-1.5 h-4 rounded-full ${i<=lvl?'bg-brand-400':'bg-gray-200 dark:bg-gray-700'}`}/>)}</div>
+              <div className={`w-2 h-2 rounded-full ${colors[str]}`}/>
+            </div>
+          </div>
+        </div>;
+      })}
+    </div>
+  </div>;
+}
+
+// --- Learning Session ---
+function LearningSession({data,setData,onFinish}){
+  const progress=data.progress||{};
+
+  // Build queue: review due + new sentences
+  const queue=useMemo(()=>{
+    const review=SENTENCES.filter(s=>{const p=progress[s.id];return p&&p.nextReview&&p.nextReview<=Date.now();});
+    const newS=SENTENCES.filter(s=>!progress[s.id]);
+    const items=[...shuffle(review),...shuffle(newS).slice(0,3)];
+    return items.length>0?items:shuffle(SENTENCES).slice(0,5);
+  },[]);
+
+  const[idx,setIdx]=useState(0);
+  const[step,setStep]=useState(0); // 0:expose, 1:chunk, 2:fill, 3:fullRecall, 4:result
+  const[hintLevel,setHintLevel]=useState(0);
+  const[answer,setAnswer]=useState('');
+  const[fillAnswers,setFillAnswers]=useState({});
+  const[startTime,setStartTime]=useState(Date.now());
+  const[recallTime,setRecallTime]=useState(0);
+  const[correct,setCorrect]=useState(null);
+  const[sessionResults,setSessionResults]=useState([]);
+  const[showTip,setShowTip]=useState(false);
+  const inputRef=useRef(null);
+
+  const sentence=queue[idx];
+  if(!sentence)return <SessionComplete results={sessionResults} data={data} onFinish={onFinish}/>;
+
+  const totalSteps=queue.length;
+  const progressPct=((idx)/totalSteps)*100;
+
+  // Generate blanks for fill step
+  const words=sentence.en.split(' ');
+  const blankIndices=useMemo(()=>{
+    const important=[];
+    sentence.chunks.forEach(([chunk])=>{
+      const cWords=chunk.split(' ');
+      cWords.forEach(cw=>{const wi=words.findIndex((w,i)=>w.toLowerCase().replace(/[^a-z]/g,'')===cw.toLowerCase().replace(/[^a-z]/g,'')&&!important.includes(i));if(wi>=0)important.push(wi);});
+    });
+    return important.length>0?important.slice(0,Math.min(3,important.length)):[1,Math.floor(words.length/2)];
+  },[idx]);
+
+  const handleFillCheck=()=>{
+    const allCorrect=blankIndices.every(bi=>{
+      const userWord=(fillAnswers[bi]||'').trim().toLowerCase().replace(/[^a-z']/g,'');
+      const correctWord=words[bi].toLowerCase().replace(/[^a-z']/g,'');
+      return userWord===correctWord;
+    });
+    if(allCorrect){
+      setStep(3);setStartTime(Date.now());setAnswer('');setHintLevel(0);
+    }else{
+      setCorrect(false);
+      setTimeout(()=>setCorrect(null),600);
+    }
+  };
+
+  const handleFullRecallCheck=()=>{
+    const userClean=answer.trim().toLowerCase().replace(/[^a-z' ]/g,'').replace(/\s+/g,' ');
+    const correctClean=sentence.en.toLowerCase().replace(/[^a-z' ]/g,'').replace(/\s+/g,' ');
+    const elapsed=(Date.now()-startTime)/1000;
+    if(userClean===correctClean){
+      setRecallTime(elapsed);setCorrect(true);setStep(4);
+      // Update progress
+      const prev=progress[sentence.id]||{ef:2.5,interval:1,reps:0,recallTimes:[],level:0};
+      const quality=hintLevel===0?5:hintLevel===1?4:3;
+      const updated=sm2(prev,quality);
+      const newRecalls=[...(prev.recallTimes||[]),elapsed].slice(-10);
+      const newLevel=clamp((prev.level||0)+1,0,5);
+      setData(d=>({...d,progress:{...d.progress,[sentence.id]:{...updated,lastStudied:Date.now(),recallTimes:newRecalls,avgRecall:Math.round(newRecalls.reduce((a,b)=>a+b,0)/newRecalls.length*10)/10,level:newLevel,hintsUsed:(prev.hintsUsed||0)+hintLevel}}}));
+      setSessionResults(r=>[...r,{id:sentence.id,correct:true,time:elapsed,hints:hintLevel}]);
+    }else{
+      setCorrect(false);
+      setTimeout(()=>setCorrect(null),600);
+    }
+  };
+
+  const showHint=()=>setHintLevel(h=>Math.min(3,h+1));
+
+  const nextSentence=()=>{
+    setIdx(i=>i+1);setStep(0);setHintLevel(0);setAnswer('');setFillAnswers({});setCorrect(null);setShowTip(false);setStartTime(Date.now());
+  };
+
+  const skipWithPenalty=()=>{
+    const prev=progress[sentence.id]||{ef:2.5,interval:1,reps:0,recallTimes:[],level:0};
+    const updated=sm2(prev,1);
+    setData(d=>({...d,progress:{...d.progress,[sentence.id]:{...updated,lastStudied:Date.now(),recallTimes:prev.recallTimes||[],avgRecall:prev.avgRecall||10,level:Math.max(0,(prev.level||0)-1),hintsUsed:(prev.hintsUsed||0)+3}}}));
+    setSessionResults(r=>[...r,{id:sentence.id,correct:false,time:0,hints:3}]);
+    nextSentence();
+  };
+
+  const catInfo=CATS[sentence.cat];
+
+  return <div className="fade-in">
+    {/* Progress bar */}
+    <div className="flex items-center gap-3 mb-6">
+      <button onClick={onFinish} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-full bg-brand-400 rounded-full transition-all duration-500" style={{width:`${progressPct}%`}}/>
+      </div>
+      <span className="text-xs text-gray-400 font-medium">{idx+1}/{totalSteps}</span>
+    </div>
+
+    <div className="flex items-center gap-2 mb-4">
+      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">{catInfo.emoji} {catInfo.label}</span>
+      <span className="text-xs text-gray-300 dark:text-gray-600">
+        {['문장 보기','청크 분해','빈칸 채우기','완전 회상','결과'][step]}
+      </span>
+    </div>
+
+    {/* Step 0: Expose */}
+    {step===0&&<div className="pop">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-4">
+        <p className="text-xl font-bold text-gray-900 dark:text-white leading-relaxed mb-3">{sentence.en}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{sentence.ko}</p>
+      </div>
+      <button onClick={()=>{
+        if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(sentence.en);u.lang='en-US';u.rate=0.85;speechSynthesis.speak(u);}
+      }} className="w-full py-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium mb-3 flex items-center justify-center gap-2">
+        <span>🔊</span> 듣기
+      </button>
+      <button onClick={()=>setStep(1)} className="w-full py-3.5 rounded-xl bg-brand-500 text-white font-bold">다음 →</button>
+    </div>}
+
+    {/* Step 1: Chunking */}
+    {step===1&&<div className="pop">
+      <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold mb-3">청크 분해</p>
+      <div className="space-y-2 mb-6">
+        {sentence.chunks.map(([en,ko],i)=><div key={i} className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 slide-up" style={{animationDelay:`${i*100}ms`}}>
+          <span className="text-base font-semibold text-brand-600 dark:text-brand-400">{en}</span>
+          <span className="text-sm text-gray-400">=</span>
+          <span className="text-sm text-gray-600 dark:text-gray-300">{ko}</span>
+        </div>)}
+      </div>
+      <button onClick={()=>{setStep(2);setStartTime(Date.now());}} className="w-full py-3.5 rounded-xl bg-brand-500 text-white font-bold">빈칸 채우기 →</button>
+    </div>}
+
+    {/* Step 2: Fill in blanks */}
+    {step===2&&<div className={`pop ${correct===false?'shake':''}`}>
+      <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold mb-3">빈칸을 채우세요</p>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 mb-4">
+        <div className="flex flex-wrap gap-1.5 items-center">
+          {words.map((w,i)=>blankIndices.includes(i)?
+            <input key={i} type="text" value={fillAnswers[i]||''} onChange={e=>setFillAnswers({...fillAnswers,[i]:e.target.value})}
+              placeholder={hintLevel>=1?w[0]+'___':'____'}
+              className="w-24 border-b-2 border-brand-300 dark:border-brand-600 bg-transparent text-center text-base font-semibold text-gray-900 dark:text-white px-1 py-0.5 focus:border-brand-500"
+              autoComplete="off" spellCheck="false"/>
+            :<span key={i} className="text-base text-gray-800 dark:text-gray-200">{w}</span>
+          )}
+        </div>
+        {hintLevel>=2&&<div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 space-y-1">
+          {sentence.chunks.map(([en,ko],i)=><p key={i} className="text-xs text-gray-400"><span className="text-brand-500">{en}</span> = {ko}</p>)}
+        </div>}
+        {hintLevel>=3&&<p className="mt-2 text-sm text-brand-500 font-medium">{sentence.en}</p>}
+      </div>
+      <div className="flex gap-2">
+        <button onClick={showHint} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm font-medium">
+          💡 힌트 ({hintLevel}/3)
+        </button>
+        <button onClick={handleFillCheck} className="flex-1 py-3 rounded-xl bg-brand-500 text-white font-bold text-sm">확인</button>
+      </div>
+    </div>}
+
+    {/* Step 3: Full Recall */}
+    {step===3&&<div className={`pop ${correct===false?'shake':''}`}>
+      <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider font-semibold mb-3">전체 문장을 입력하세요</p>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 mb-4">
+        <p className="text-sm text-gray-400 dark:text-gray-500 mb-3">{sentence.ko}</p>
+        <textarea ref={inputRef} value={answer} onChange={e=>setAnswer(e.target.value)} rows={3}
+          className="w-full bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-base text-gray-900 dark:text-white resize-none border border-gray-200 dark:border-gray-600 focus:border-brand-400 dark:focus:border-brand-500"
+          placeholder="영어 문장을 입력하세요..." autoComplete="off" spellCheck="false"
+          onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleFullRecallCheck();}}}/>
+        {hintLevel>=1&&<p className="text-xs text-gray-400 mt-2">첫 글자: {sentence.en.split(' ').map(w=>w[0]).join(' ')}</p>}
+        {hintLevel>=2&&<div className="mt-2 space-y-1">{sentence.chunks.map(([en,ko],i)=><p key={i} className="text-xs text-gray-400"><span className="text-brand-500">{en}</span> = {ko}</p>)}</div>}
+        {hintLevel>=3&&<p className="mt-2 text-sm text-brand-500 font-medium">{sentence.en}</p>}
+      </div>
+      <div className="flex gap-2">
+        <button onClick={showHint} className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm font-medium">
+          💡 힌트 ({hintLevel}/3)
+        </button>
+        <button onClick={handleFullRecallCheck} className="flex-1 py-3 rounded-xl bg-brand-500 text-white font-bold text-sm">확인</button>
+      </div>
+      <button onClick={skipWithPenalty} className="w-full mt-2 py-2 text-xs text-gray-400 hover:text-gray-500">건너뛰기</button>
+    </div>}
+
+    {/* Step 4: Result */}
+    {step===4&&<div className="pop text-center">
+      <div className="text-4xl mb-3">✅</div>
+      <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">정확해요!</p>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 mb-4 text-left">
+        <p className="text-base font-semibold text-gray-900 dark:text-white mb-1">{sentence.en}</p>
+        <p className="text-sm text-gray-400 mb-3">{sentence.ko}</p>
+        <div className="flex gap-4 text-center py-2 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex-1"><p className="text-lg font-bold text-brand-500">{recallTime.toFixed(1)}s</p><p className="text-[10px] text-gray-400">회상 시간</p></div>
+          <div className="flex-1"><p className="text-lg font-bold text-gray-800 dark:text-gray-200">{hintLevel}</p><p className="text-[10px] text-gray-400">힌트 사용</p></div>
+          <div className="flex-1">
+            <div className="flex gap-0.5 justify-center">{[1,2,3,4,5].map(i=><div key={i} className={`w-1.5 h-4 rounded-full ${i<=(progress[sentence.id]?.level||1)?'bg-brand-400':'bg-gray-200 dark:bg-gray-700'}`}/>)}</div>
+            <p className="text-[10px] text-gray-400 mt-1">체화 레벨</p>
+          </div>
+        </div>
+      </div>
+      <button onClick={()=>setShowTip(!showTip)} className="text-xs text-brand-500 mb-3 hover:underline">
+        {showTip?'접기':'📖 문장 해부 보기'}
+      </button>
+      {showTip&&<div className="bg-brand-50 dark:bg-brand-900/20 rounded-xl p-4 text-left mb-4 slide-up">
+        <p className="text-sm text-gray-700 dark:text-gray-300">{sentence.tip}</p>
+        <div className="mt-2 space-y-1">{sentence.chunks.map(([en,ko],i)=><p key={i} className="text-xs text-gray-500"><span className="font-medium text-brand-600 dark:text-brand-400">{en}</span> = {ko}</p>)}</div>
+      </div>}
+      <button onClick={nextSentence} className="w-full py-3.5 rounded-xl bg-brand-500 text-white font-bold">
+        {idx<totalSteps-1?'다음 문장 →':'학습 완료'}
+      </button>
+    </div>}
+  </div>;
+}
+
+// --- Session Complete ---
+function SessionComplete({results,data,onFinish}){
+  const correctCount=results.filter(r=>r.correct).length;
+  const avgTime=results.filter(r=>r.correct).length?
+    (results.filter(r=>r.correct).reduce((s,r)=>s+r.time,0)/results.filter(r=>r.correct).length).toFixed(1):0;
+  const totalHints=results.reduce((s,r)=>s+r.hints,0);
+
+  return <div className="fade-in text-center py-8">
+    <div className="text-5xl mb-4">🎉</div>
+    <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-2">학습 완료!</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 mb-6 text-left">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="text-center"><p className="text-2xl font-bold text-brand-500">{results.length}</p><p className="text-xs text-gray-400">학습 문장</p></div>
+        <div className="text-center"><p className="text-2xl font-bold text-safe">{correctCount}</p><p className="text-xs text-gray-400">정답</p></div>
+        <div className="text-center"><p className="text-2xl font-bold text-gray-800 dark:text-gray-200">{avgTime}s</p><p className="text-xs text-gray-400">평균 회상</p></div>
+        <div className="text-center"><p className="text-2xl font-bold text-warn">{totalHints}</p><p className="text-xs text-gray-400">힌트 사용</p></div>
+      </div>
+    </div>
+    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+      {correctCount===results.length?'완벽해요! 모든 문장을 기억했어요.':'조금 어려웠던 문장은 곧 다시 나타날 거예요.'}
+    </p>
+    <button onClick={onFinish} className="w-full py-3.5 rounded-xl bg-brand-500 text-white font-bold">홈으로 돌아가기</button>
+  </div>;
+}
+
+// ============================================================
+// APP
+// ============================================================
+function App(){
+  const[data,setData]=useStore();
+  const[page,setPage]=useState(data.sessions?.length>0?'home':'landing');
+  const dark=data.dark;
+
+  useEffect(()=>{document.documentElement.classList.toggle('dark',dark);},[dark]);
+
+  const toggleDark=()=>setData(d=>({...d,dark:!d.dark}));
+
+  const startSession=()=>{
+    // Update streak
+    const today=new Date().toDateString();
+    const streak=data.streak||{current:0,best:0,lastDate:null};
+    let newStreak={...streak};
+    if(streak.lastDate!==today){
+      const yesterday=new Date(Date.now()-86400000).toDateString();
+      if(streak.lastDate===yesterday){newStreak.current++;}
+      else if(streak.lastDate!==today){newStreak.current=1;}
+      newStreak.lastDate=today;
+      newStreak.best=Math.max(newStreak.best,newStreak.current);
+    }
+    setData(d=>({...d,streak:newStreak}));
+    setPage('learning');
+  };
+
+  const finishSession=()=>{
+    setData(d=>({...d,sessions:[...(d.sessions||[]),{date:Date.now()}]}));
+    setPage('home');
+  };
+
+  return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    {page!=='landing'&&<header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
+      <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={()=>setPage('home')}>
+          <span className="text-xl">🧠</span>
+          <span className="text-base font-bold text-gray-800 dark:text-gray-100">SentenceFlow</span>
+        </div>
+        <DarkToggle dark={dark} toggle={toggleDark}/>
+      </div>
+    </header>}
+
+    <main className="max-w-lg mx-auto px-4 py-6">
+      {page==='landing'&&<Landing onStart={()=>{setPage('home');startSession();}}/>}
+      {page==='home'&&<Home data={data} onStartSession={startSession} onShowList={()=>setPage('list')}/>}
+      {page==='list'&&<SentenceList data={data} onBack={()=>setPage('home')}/>}
+      {page==='learning'&&<LearningSession data={data} setData={setData} onFinish={finishSession}/>}
+    </main>
+
+    {page!=='landing'&&page!=='learning'&&<footer className="text-center py-6 text-xs text-gray-300 dark:text-gray-700">
+      SentenceFlow — 하루 7분, 영어가 입에서 나옵니다
+    </footer>}
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
